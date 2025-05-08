@@ -1,0 +1,51 @@
+---
+title: "User Interface Overview"
+description: "Explore the user interface components and dashboard features of Macru."
+---
+
+# User Interface Overview
+
+Macru provides a clean, intuitive, and responsive user interface, built with modern web technologies to ensure a seamless user experience.
+
+## Core Technologies
+
+*   **Framework**: [Next.js](https://nextjs.org/) (App Router) with React Server Components and TypeScript.
+*   **Styling**: [Tailwind CSS](https://tailwindcss.com/) for utility-first styling.
+*   **Component Library**: [shadcn/ui](https://ui.shadcn.com/) for a set of pre-built, accessible, and customizable UI components. This ensures a consistent look and feel across the application.
+*   **Theme Switching**: Supports light and dark modes using `next-themes`, allowing users to choose their preferred visual theme.
+
+*The initial project setup including these technologies is noted in `devlog.txt` entry `[2025-03-25] Initial Project Setup`. Theme provider and toggle implementation are covered in `[2025-03-28] User Profile Management and Navigation`.*
+
+## Key UI Components & Dashboard Features
+
+Macru's dashboard (`app/dashboard/`) provides access to its core functionalities through various UI elements:
+
+*   **Main Layout & Navigation**:
+    *   **Sidebar (`components/layout/Sidebar.tsx`)**: Responsive navigation sidebar for accessing different sections of the dashboard.
+    *   **User Dropdown (`components/layout/UserDropdown.tsx`)**: Provides access to user profile information and logout options.
+*   **Chat Interface (`components/ui/chat-interface.tsx`)**:
+    *   **Query Box (`components/ui/query-box.tsx`)**: The primary input area for users to type their natural language questions.
+    *   **Message Display (`components/ui/chat-message.tsx`)**: Displays the conversation history, with distinct styling for user queries and assistant responses. Supports Markdown rendering for rich content in LLM responses.
+    *   **Action Confirmation**: UI elements for confirming or rejecting actions proposed by the LLM are integrated into the chat flow.
+    *   *Implemented in `devlog.txt` entry `[2025-04-24] Query Interface and Response Display Implementation` and refined in `[2025-05-04] LLM Response & Action Handling Refinements`.*
+*   **Query History (`components/ui/query-history.tsx`)**:
+    *   Allows users to view their past queries and the LLM's responses.
+    *   May include search and filtering capabilities.
+    *   *Detailed in `devlog.txt` entry `[2025-04-27] Query Management System Implementation`.*
+*   **File Management (`components/ui/file-management.tsx`, `app/dashboard/files/page.tsx`)**:
+    *   **File Upload (`components/ui/file-upload.tsx`)**: Interface for uploading documents (PDF, DOCX, TXT) with drag-and-drop support and progress tracking.
+    *   **File List (`components/ui/file-list.tsx`)**: Displays uploaded files, potentially with sorting, searching, and pagination.
+    *   Allows for file deletion.
+    *   *Covered in `devlog.txt` entries `[2025-03-29] File Upload System Implementation`, `[2025-04-04] Enhanced File Management System`, and `[2025-04-06] File Management System Completion`.*
+*   **Settings Page (`app/dashboard/settings/page.tsx`)**:
+    *   A central hub for user configurations, often organized with tabs (`components/ui/tabs.tsx`).
+    *   **LLM Selector (`components/ui/LLMSelector.tsx`)**: Allows users to choose their preferred Large Language Model. (See `devlog.txt` `[2025-04-23] LLM Selector UI and User Preferences Implementation`).
+    *   **Data Connector Management**: Sections for connecting/disconnecting and managing data sources like Notion, Google Calendar, and Gmail. (See various connector implementation entries in `devlog.txt`).
+    *   **Memory Viewer (`components/ui/memory-viewer.tsx`)**: Allows users to view and manage their stored memories. (See `devlog.txt` `[2025-04-24] Memory Layer Implementation`).
+    *   **Audit Trail Viewer (`components/ui/audit-trail-viewer.tsx`)**: Displays logs of actions proposed or executed by the system. (See `devlog.txt` `[2025-04-29] Action Layer Configuration & Security`).
+*   **Profile Page (`app/dashboard/profile/page.tsx`)**:
+    *   **Profile Form (`components/forms/ProfileForm.tsx`)**: Allows users to view and edit their profile information (e.g., name, timezone). (See `devlog.txt` `[2025-03-28] User Profile Management and Navigation` and `[2025-05-05] User Timezone Preference`).
+*   **Notifications**:
+    *   Utilizes a toast notification system (`components/ui/toaster.tsx`, `components/ui/use-toast.ts`) for providing feedback on operations, errors, or system messages. (See `devlog.txt` `[2025-04-24] Query Interface and Response Display Implementation`).
+
+The UI is designed to be responsive and provide clear status indicators for data ingestion, actions, and other processes, ensuring a smooth and understandable user journey. 

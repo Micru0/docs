@@ -1,0 +1,52 @@
+---
+title: "Querying Data with Macru"
+description: "Understand how Macru enables you to ask natural language questions against your ingested data using advanced querying techniques."
+---
+
+# Querying Data with Macru
+
+Macru empowers you to interact with your entire knowledge base by asking natural language questions. It leverages a sophisticated querying system to find relevant information and synthesize insightful answers.
+
+## Hybrid Query Engine
+
+At the core of Macru's querying capability is a Hybrid Query Engine. This engine intelligently combines two main retrieval methods to find the most relevant information for your query:
+
+1.  **Vector Similarity Search**:
+    *   Utilizes the vector embeddings generated during the ingestion process.
+    *   Searches for text chunks whose semantic meaning is closest to your query.
+    *   This is effective for understanding the intent and context behind your questions, even if the exact keywords are not used.
+    *   Implemented using `pgvector` in Supabase and the `match_documents` database function.
+
+2.  **Structured Metadata Filtering**:
+    *   Filters data based on the structured metadata extracted from your sources (e.g., `event_start_time`, `content_status`, `priority`, `source_type`, `source_created_at`).
+    *   Allows for precise queries like "Show me Notion documents created this week with 'high' priority" or "What meetings do I have today?".
+    *   This complements vector search by narrowing down results based on concrete attributes.
+
+By combining these methods, the Hybrid Query Engine aims to retrieve a comprehensive set of relevant data chunks and items from your knowledge base.
+
+*Refer to `devlog.txt` entries under Task 15 (Hybrid Query Engine), especially `[2025-05-05] Structured Metadata Context & Prompt Enhancement`, `[2025-05-05] Source Attribution & Type Filtering Refinement`, and the "Include Structured Data in LLM Context" entry for details on the `match_documents` function and context assembly.*
+
+## Cache-Augmented Generation (CAG)
+
+Once relevant data is retrieved, Macru uses a Cache-Augmented Generation (CAG) process to generate an answer:
+
+1.  **Context Assembly**:
+    *   The retrieved text chunks and relevant structured metadata points are efficiently assembled into a prompt for the Large Language Model (LLM).
+    *   Care is taken to fit this context within the LLM's context window while maximizing the information provided.
+2.  **LLM Interaction** (`lib/llmRouter.ts`):
+    *   The user's query and the assembled context are passed to the selected LLM (e.g., Google Gemini).
+    *   The LLM processes this information to understand the query in the context of the retrieved data.
+3.  **Answer Generation**:
+    *   The LLM generates a natural language response based on the provided context.
+    *   Macru aims to provide answers grounded in your data, often including source attribution so you can trace the information back to its origin.
+4.  **Caching**:
+    *   To improve performance and reduce costs, Macru implements caching for embeddings.
+    *   Future enhancements may include caching for frequently retrieved chunks or LLM responses.
+
+*The `devlog.txt` entry `[2025-04-27] Query Management System Implementation` details how queries and responses are handled and stored.*
+
+## Source Attribution
+
+When Macru generates answers, especially summaries or information synthesized from multiple documents, it strives to provide source attribution. This means indicating which of your ingested documents or data items were used to formulate the response, allowing you to verify the information or explore the source in more detail.
+
+This functionality was refined in `devlog.txt` entries like `[2025-05-05] Source Attribution & Type Filtering Refinement (Task 15.3 Part 1)`. 

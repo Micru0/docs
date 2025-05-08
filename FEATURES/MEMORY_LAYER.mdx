@@ -1,0 +1,48 @@
+---
+title: "Persistent Memory Layer (MEM0)"
+description: "Discover Macru's personalized memory system for more context-aware interactions."
+---
+
+# Persistent Memory Layer (MEM0)
+
+Macru features a persistent and personalized memory layer, often referred to as MEM0, designed to enhance the user experience by enabling the assistant to remember key information across conversations.
+
+## Purpose of the Memory Layer
+
+The primary goals of the memory layer are to:
+
+*   **Improve Contextual Awareness**: Allow the LLM to recall user preferences, key facts shared in previous interactions, and other user-specific information.
+*   **Increase Efficiency**: Reduce the need for users to repeat information they've already provided.
+*   **Personalize Responses**: Lead to more tailored and relevant answers from the assistant.
+
+## How It Works
+
+1.  **Storage**:
+    *   User-specific memories are stored securely in a dedicated `memory_items` table in the Supabase Postgres database.
+    *   Strict Row-Level Security (RLS) policies ensure that each user can only access their own memories.
+    *   The system is designed with future encryption for sensitive memory data in mind.
+2.  **Memory Creation**:
+    *   Memories can be created implicitly. For example, the system might have basic heuristics to identify and save facts when a user says something like "Remember that..." or "I like...". (Note: Some early heuristics noted in `devlog.txt` `[2025-04-30] Auth, Memory, and LLM Action Fixes` were removed or refined to prevent incorrect saving).
+    *   Future enhancements could involve more sophisticated LLM-based automatic memory extraction.
+3.  **Memory Retrieval**:
+    *   When a user submits a query, relevant memory items are dynamically fetched from the database.
+    *   This retrieval can be based on keyword matching or other relevance algorithms (e.g., semantic search on memories if implemented).
+4.  **Context Augmentation**:
+    *   The retrieved memories are then added to the context provided to the LLM along with the current query and any relevant data chunks.
+5.  **Optional Feature**:
+    *   The memory layer functionality can be made optional via an environment variable (e.g., `ENABLE_MEMORY_LAYER`).
+
+*The implementation of the memory layer, including database schema, client and server-side services, and initial heuristics, is detailed in the `devlog.txt` entry `[2025-04-24] Memory Layer Implementation (Task 7)`.*
+
+## User Interaction
+
+*   **Viewing Memories**: Users can typically view their stored (non-sensitive) memories via a `MemoryViewer` component (`components/ui/memory-viewer.tsx`), often accessible from their profile or settings page (`app/dashboard/profile/page.tsx`).
+*   **Managing Memories**: The viewer may also allow users to delete memories. Editing capabilities could be a future enhancement.
+
+## Future Considerations
+
+*   More robust automatic memory extraction using LLMs.
+*   Memory editing capabilities in the UI.
+*   Encryption for all sensitive memory data.
+*   Advanced memory retrieval algorithms (e.g., vector search on memories, better keyword analysis, summarization of memories).
+*   User configuration options for memory behavior (e.g., auto-save toggles). 

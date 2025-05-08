@@ -1,0 +1,39 @@
+---
+title: "Multi-LLM Architecture"
+description: "Learn about Macru's flexible architecture supporting multiple Large Language Models."
+---
+
+# Multi-LLM Architecture
+
+Macru is designed with a flexible architecture that supports the use of multiple underlying Large Language Models (LLMs). This approach offers several advantages:
+
+*   **Flexibility**: Users aren't locked into a single LLM provider.
+*   **Choice**: Allows users to select models based on their preferences for cost, performance, or specific capabilities.
+*   **Future-Proofing**: The application can adapt to the evolving LLM landscape by more easily integrating new and improved models as they become available.
+
+## Implementation (`lib/llmRouter.ts`)
+
+The core of this feature is the **LLM Router** (`lib/llmRouter.ts`). This component acts as an abstraction layer between Macru's core logic and the various LLM APIs.
+
+*   **Common Interface**: It defines a standardized interface for interacting with LLMs, so the rest of the application doesn't need to be aware of the specific details of each provider's API.
+*   **Provider-Specific Logic**: For each supported LLM (e.g., Google Gemini via `@google/generative-ai`), there's provider-specific code within the router that handles:
+    *   API request formatting.
+    *   Authentication with the LLM service (using API keys stored in environment variables like `GEMINI_API_KEY`).
+    *   Parsing the LLM's response.
+*   **Extensibility**: New LLM providers can be added by implementing their specific logic within this router structure.
+
+*The initial implementation of the LLM Router with support for Google Gemini is detailed in the `devlog.txt` entry `[2025-04-21] LLM Router Implementation`.*
+
+## User Selection
+
+Macru provides a user interface component, **LLMSelector** (`components/ui/LLMSelector.tsx`), typically found in the application's settings page (`app/dashboard/settings/page.tsx`). This allows users to:
+
+*   View available LLM models.
+*   Select their preferred LLM for use in queries and other AI-powered features.
+*   User preferences for LLM selection are typically persisted (e.g., using `localStorage` via `lib/services/user-preferences.ts`).
+
+*The UI for LLM selection and user preferences was implemented as noted in `devlog.txt` entry `[2025-04-23] LLM Selector UI and User Preferences Implementation`.*
+
+## Default LLM
+
+While multiple LLMs can be supported, Macru is typically configured with a default LLM (e.g., Google Gemini 2.5 Pro, as mentioned in the PRD) that is used if the user hasn't made a specific selection or if a chosen model is unavailable. 

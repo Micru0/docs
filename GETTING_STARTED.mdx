@@ -1,0 +1,111 @@
+---
+title: "Getting Started with Macru"
+description: "Learn how to set up and run your Macru application."
+---
+
+# Getting Started with Macru
+
+This guide will walk you through the steps to get your Macru application up and running on your local machine.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+*   Node.js (version 18.x or later recommended)
+*   npm, yarn, or pnpm (package manager)
+*   Access to a Supabase project
+
+## 1. Clone the Repository
+
+First, clone the Macru application repository to your local machine:
+
+```bash
+git clone https://github.com/Spa42/macru.git
+cd macru
+```
+
+## 2. Install Dependencies
+
+Navigate into the cloned project directory and install the necessary dependencies using your preferred package manager:
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+## 3. Set up Supabase
+
+Macru relies on Supabase for authentication, database storage, and file storage.
+
+*   **Create a Supabase Project**: If you haven't already, create a new project at [supabase.com](https://supabase.com/).
+*   **Database Configuration**:
+    *   In your Supabase project dashboard, navigate to **Database** > **Extensions**.
+    *   Enable the `pgvector` extension (for vector similarity search).
+    *   Enable the `pgsodium` extension (for future token encryption, if not already enabled).
+    *   Go to the **SQL Editor**. Run *all* SQL migration scripts located in the Macru project's `scripts/migrations/` and `supabase/migrations/` directories. **Execute them in numerical order** to correctly set up tables (like `profiles`, `documents`, `chunks`, `embeddings`, `memory_items`, `connector_tokens`, `action_logs`), functions, triggers, and Row-Level Security (RLS) policies.
+*   **Storage Setup**:
+    *   Navigate to **Storage** in your Supabase dashboard.
+    *   Create the required buckets (e.g., `documents`, `avatars`). Refer to the Macru application's source code or migration scripts for exact names and policies if needed.
+*   **Authentication Setup**:
+    *   Navigate to **Authentication** > **Configuration** (or Providers).
+    *   Ensure Email authentication is enabled.
+    *   For local development, you might want to temporarily disable "Confirm email" to streamline testing.
+    *   Under **URL Configuration** (or **Auth Settings** > **General**):
+        *   Set your **Site URL** (e.g., `http://localhost:3000` for local development).
+        *   Add **Redirect URLs**: `http://localhost:3000/auth/callback`.
+
+## 4. Configure Environment Variables
+
+Macru requires several environment variables to connect to Supabase and other services.
+
+*   In the root of your Macru project directory (`/Users/micru/macru/macru/`), create a file named `.env.local`.
+*   Copy the following structure into `.env.local` and populate it with your actual credentials and keys from your Supabase project and other services:
+
+```env
+# Supabase Core
+NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
+SUPABASE_JWT_SECRET=YOUR_SUPABASE_JWT_SECRET # Get from Supabase Dashboard > Project Settings > API > JWT Settings
+
+# LLMs (Example for Google Gemini)
+GEMINI_API_KEY=YOUR_GOOGLE_AI_API_KEY
+# Add keys for other LLMs if configured in llmRouter.ts
+
+# Memory Layer (Optional Toggle - set to 'true' to enable)
+# ENABLE_MEMORY_LAYER=false
+
+# Notion Connector (If using)
+NOTION_CLIENT_ID=YOUR_NOTION_INTEGRATION_CLIENT_ID
+NOTION_CLIENT_SECRET=YOUR_NOTION_INTEGRATION_CLIENT_SECRET
+NOTION_REDIRECT_URI=http://localhost:3000/api/connectors/notion/auth/callback # Ensure this matches your Notion Integration settings
+
+# Internal Sync Trigger (For background sync, e.g., Notion Supabase Function)
+INTERNAL_API_SECRET=A_STRONG_RANDOM_SECRET_SHARED_WITH_SUPABASE_FUNCTIONS
+APP_URL=http://localhost:3000 # Use production URL when deployed
+
+# Add other necessary variables for different connectors or services
+```
+
+**Important**:
+*   Replace placeholder values like `YOUR_SUPABASE_PROJECT_URL` with your actual credentials.
+*   The `SUPABASE_SERVICE_ROLE_KEY` is highly sensitive and should only be used in backend environments.
+*   For production deployments, ensure all these variables are securely set in your hosting provider's environment settings, and update `NOTION_REDIRECT_URI` and `APP_URL` to your production URLs.
+
+## 5. Run the Development Server
+
+Once the dependencies are installed and environment variables are configured, you can start the Macru development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+```
+
+## 6. Access Macru
+
+Open your web browser and navigate to [http://localhost:3000](http://localhost:3000). You should see the Macru application. 

@@ -1,0 +1,58 @@
+---
+title: "Development Guide"
+description: "Information for developers working on or contributing to Macru."
+---
+
+# Development Guide
+
+This guide provides essential information for developers working on the Macru application codebase.
+
+## Contributing
+
+(Currently, there are no formal contribution guidelines outlined. If this were an open-source project, this section would typically cover branching strategies, commit message formats, pull request processes, and code of conduct.)
+
+## Coding Style
+
+*   **Consistency**: Aim to follow the existing coding style found in the project for consistency.
+*   **TypeScript**: Leverage TypeScript features for type safety.
+*   **Readability**: Use descriptive variable and function names. Add comments only for non-trivial logic that isn't clear from the code itself.
+*   **Modularity**: Follow principles of modular design to enhance maintainability and reusability (e.g., the DataConnector pattern, service layers).
+
+## Testing
+
+(The `devlog.txt` mentions the creation of test files for the document processing pipeline (`lib/services/__tests__/*.test.ts`, `app/api/documents/ingest/__tests__/route.test.ts`). This section could be expanded with details on how to run these tests and the overall testing strategy if more information is available.)
+
+*   Unit and integration tests exist for some core components like the document processing pipeline.
+*   Run tests using the relevant command (e.g., `npm test`, `yarn test`, or specific jest commands if configured).
+
+## Database Migrations Workflow
+
+Macru uses Supabase for its database. It's crucial to handle database schema changes correctly.
+
+**Workflow Notes (from PRD.txt and observations):**
+
+1.  **Direct Application**: In the current development setup noted in the PRD, schema changes (like `ALTER TABLE`, `CREATE FUNCTION`) are applied **directly** to the live development database using the Supabase Studio SQL Editor. **Local Supabase CLI commands like `supabase db reset` or `supabase migration up` are typically NOT used.**
+2.  **Check Existing Migrations**: Before making schema changes, **ALWAYS** check the `scripts/migrations/` and `supabase/migrations/` directories for existing migration files related to the tables or functions you intend to modify. This helps prevent conflicts.
+3.  **Create New Migration File**: If a schema change is necessary:
+    *   Create a **new** migration file using the Supabase CLI (even if not running migrations locally, this keeps changes version-controlled):
+        ```bash
+        npx supabase migration new your_migration_description
+        ```
+        *(Note: You might need `npx` if the CLI isn't installed globally. Ensure you are in the Macru project root: `/Users/micru/macru/macru/`)*
+    *   Populate the newly generated SQL file (likely in `supabase/migrations/`) with the exact SQL commands you plan to execute. Make scripts idempotent where possible (e.g., use `IF NOT EXISTS`, `DROP ... IF EXISTS`).
+4.  **Apply Manually**: Execute the SQL commands from your new migration file manually using the Supabase Studio SQL Editor against your development database.
+5.  **Commit**: Commit the new migration file to version control along with your code changes.
+
+**Why this workflow?** This ensures that schema changes are tracked in Git history, even though they are applied manually to the development database instance. It avoids potential issues with local Supabase environments or Docker if they are not being used consistently by all developers. However, it relies on developers carefully applying migrations manually and in the correct order.
+
+*(See `devlog.txt` `[2025-04-30] Automatic Notion Sync & Source Timestamps` and PRD Section 7.6 for context on Supabase CLI issues and the manual workflow note).*
+
+## Development Log (`devlog.txt`)
+
+A highly detailed development log is maintained at the root of the Macru project (`/Users/micru/macru/macru/devlog.txt`). This log is an invaluable resource for:
+
+*   Understanding the implementation history of features.
+*   Finding details on specific file changes and dependencies added.
+*   Reviewing debugging sessions and fixes for complex issues (e.g., authentication, connector problems).
+
+**Always consult the `devlog.txt`** when investigating existing features or troubleshooting complex bugs. 

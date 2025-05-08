@@ -1,0 +1,50 @@
+---
+title: "Google Calendar Connector"
+description: "Details on how Macru integrates with your Google Calendar."
+---
+
+# Google Calendar Connector
+
+Macru can connect to your Google Calendar to ingest event data, allowing you to query your schedule alongside other information.
+
+## Features
+
+*   **OAuth 2.0 Connection**: Securely authorize Macru to access your Google Calendar using Google's standard OAuth 2.0 flow. Requires `calendar.readonly`, `userinfo.email`, and `openid` scopes.
+*   **Event Ingestion**: Fetches event details including title, description, attendees, location, and event start/end times.
+*   **Structured Metadata**: Event start and end times are stored as structured metadata (`event_start_time`, `event_end_time`) in the `documents` table, enabling time-based queries.
+*   **Relevant Event Filtering**: The initial sync focuses on fetching current and future events to improve relevance and reduce ingestion time. Subsequent syncs (once fully implemented) would fetch events since the last sync time. Non-standard events (like contact birthdays) are typically filtered out.
+*   **Manual Sync**: A "Sync Now" button in the settings allows users to trigger an immediate sync.
+
+## Connection Process
+
+1.  Navigate to the **Settings** page in the Macru dashboard.
+2.  Find the **Google Calendar** integration section.
+3.  Click the "Connect" button.
+4.  You will be redirected to Google to authorize Macru. You may need to grant permission for Macru to access your calendar and basic profile information (email).
+    *   *Note: During development, if the Google Cloud app is unverified, you might need to add your email as a test user in the Google Cloud Console OAuth Consent Screen settings.*
+5.  After authorization, you'll be redirected back to Macru.
+6.  The connection status, including the connected Google account email, will be displayed in the settings.
+
+## Implementation Details
+
+*   **Connector Logic**: `lib/connectors/google-calendar.ts` (implements the `DataConnector` interface).
+*   **Authentication Flow**:
+    *   Start: `app/api/connectors/google-calendar/auth/start/route.ts`
+    *   Callback: `app/api/connectors/google-calendar/auth/callback/route.ts` (handles code exchange, token saving to `connector_tokens` table, including refresh tokens and expiry dates).
+*   **Status Check**: `app/api/connectors/google-calendar/status/route.ts` (includes logic to check token validity and potentially refresh tokens).
+*   **Disconnection**: `app/api/connectors/google-calendar/disconnect/route.ts` (includes token revocation).
+*   **Sync Endpoint**: `app/api/sync/google-calendar/route.ts` (triggered manually).
+*   **Libraries Used**: `googleapis`.
+
+*Key development steps and debugging details can be found in `devlog.txt` entries:*
+*   *`Dev Log Entry: Google Calendar Connector Implementation & Debugging`*
+*   *`Dev Log Entry: Google Calendar Connector Debugging Session 2`*
+*   *`[2025-05-03] Google Calendar Connector Refinement`*
+
+## Data Handling
+
+*   The connector fetches events using the `calendar.events.list` API.
+*   It constructs a `rawContent` string for each event (title, description, attendees, location) to be processed by the `DocumentProcessor`.
+*   Event start/end times are mapped to `event_start_time` and `event_end_time` in the `documents` table.
+*   The Google Calendar Event ID is typically stored as the `source_id`.
+*   The document `title` is populated with the event title. 

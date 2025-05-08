@@ -1,0 +1,58 @@
+---
+title: "Macru Documentation Creation History"
+description: "Summary of the steps taken to generate the initial documentation for the Macru application."
+---
+
+# Macru Documentation Creation History
+
+This document summarizes the process undertaken to create the initial set of documentation for the **Macru** application using the Mintlify documentation framework.
+
+## Goal
+
+The objective was to generate comprehensive documentation based on existing project artifacts, primarily:
+*   `PRD.txt`: The Product Requirements Document for Macru.
+*   `devlog.txt`: A detailed development log tracking features, changes, and debugging sessions.
+*   Macru Application `README.md`: The main readme file for the Macru project.
+
+The documentation was created within a cloned Mintlify starter kit located at `/Users/micru/mintlfy/docs/`.
+
+## Process Summary
+
+1.  **Setup**: Cloned the Mintlify starter kit (`https://github.com/Spa42/docs`).
+2.  **Information Gathering**: Read and analyzed content from `PRD.txt`, `devlog.txt`, and the Macru `README.md`.
+3.  **Content Generation**: Created the following `.mdx` pages, populating them with information synthesized from the source materials:
+    *   `index.mdx`: Introduction and overview of Macru.
+    *   `GETTING_STARTED.mdx`: Setup and installation instructions.
+    *   `ARCHITECTURE.mdx`: Overview of system components, data models, APIs, infrastructure, and project structure.
+    *   `FEATURES/DATA_INGESTION.mdx`: Details on file uploads, connectors, and the document processing pipeline.
+    *   `FEATURES/QUERYING_DATA.mdx`: Explanation of the Hybrid Query Engine and Cache-Augmented Generation (CAG).
+    *   `FEATURES/MULTI_LLM_ARCHITECTURE.mdx`: Information on supporting multiple LLMs via `llmRouter.ts`.
+    *   `FEATURES/MEMORY_LAYER.mdx`: Description of the persistent, personalized memory system.
+    *   `FEATURES/ACTION_LAYER.mdx`: Details on proposing and executing actions with user confirmation.
+    *   `FEATURES/AUTHENTICATION.mdx`: Explanation of the Supabase Auth implementation.
+    *   `FEATURES/USER_INTERFACE.mdx`: Overview of UI components and dashboard features.
+    *   `CONNECTORS/NOTION_CONNECTOR.mdx`: Specifics of the Notion integration.
+    *   `CONNECTORS/GOOGLE_CALENDAR_CONNECTOR.mdx`: Specifics of the Google Calendar integration.
+    *   `CONNECTORS/GMAIL_CONNECTOR.mdx`: Specifics of the Gmail integration.
+    *   `DEVELOPMENT_GUIDE.mdx`: Information for developers, including the database migration workflow.
+    *   `TROUBLESHOOTING.mdx`: Compilation of common issues and solutions from the `devlog.txt`.
+4.  **Navigation Configuration (`docs.json`)**:
+    *   Updated the documentation `name` to "Macru Documentation".
+    *   Added all created pages to the navigation structure under relevant groups ("Get Started", "Macru Documentation", "Connectors") within the "Guides" tab.
+
+## Potential Next Steps & Improvements
+
+This initial pass has generated a solid foundation based on the provided materials. Further refinements could include:
+
+*   **Content Review & Refinement**: Read through each generated page for accuracy, clarity, and completeness. Add more specific examples or diagrams where helpful.
+*   **`docs.json` Cleanup**:
+    *   Remove placeholder groups/pages from the starter kit (e.g., the "Essentials" group and its pages, the default "API Reference" tab/pages) if they are not relevant to Macru.
+    *   Update the `logo` and `favicon` paths in `docs.json` to use Macru-specific assets.
+    *   Customize `navbar` links (e.g., remove default "Dashboard" button, add relevant links for Macru).
+    *   Customize `footer` links.
+    *   Update `colors` to match Macru's branding, if different.
+*   **Address Title Display**: Decide whether to keep the H1 heading in each `.mdx` file or remove it to avoid visual repetition with the title set in the frontmatter. If removing, ensure Mintlify renders the frontmatter title appropriately as the main page heading.
+*   **API Documentation**: If Macru exposes a public or internal API and has an OpenAPI specification file, use Mintlify's features (`npx @mintlify/scraping@latest openapi-file <path-or-url>`) to generate the API reference section.
+*   **Add More Troubleshooting**: As the application evolves, add new common issues and solutions to `TROUBLESHOOTING.mdx`.
+*   **Improve Navigation**: Consider reorganizing the groups and tabs in `docs.json` for optimal user navigation as the documentation grows. For example, "Architecture", "Development Guide", and "Troubleshooting" could potentially form their own top-level group or tab.
+*   **Visual Enhancements**: Incorporate more Mintlify components (`<Card>`, `<Note>`, `<Warning>`, images, etc.) to improve visual presentation and readability. 

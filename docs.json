@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Macru Documentation",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -17,8 +17,30 @@
             "group": "Get Started",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "GETTING_STARTED"
+            ]
+          },
+          {
+            "group": "Macru Documentation",
+            "pages": [
+              "ARCHITECTURE",
+              "FEATURES/DATA_INGESTION",
+              "FEATURES/QUERYING_DATA",
+              "FEATURES/MULTI_LLM_ARCHITECTURE",
+              "FEATURES/MEMORY_LAYER",
+              "FEATURES/ACTION_LAYER",
+              "FEATURES/AUTHENTICATION",
+              "FEATURES/USER_INTERFACE",
+              "DEVELOPMENT_GUIDE",
+              "TROUBLESHOOTING"
+            ]
+          },
+          {
+            "group": "Connectors",
+            "pages": [
+              "CONNECTORS/NOTION_CONNECTOR",
+              "CONNECTORS/GOOGLE_CALENDAR_CONNECTOR",
+              "CONNECTORS/GMAIL_CONNECTOR"
             ]
           },
           {

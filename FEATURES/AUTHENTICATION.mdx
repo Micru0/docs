@@ -1,0 +1,35 @@
+---
+title: "Authentication in Macru"
+description: "Learn how Macru handles user authentication securely."
+---
+
+# Authentication in Macru
+
+Macru implements a robust authentication system to ensure that user data is secure and accessible only by authorized individuals. The system handles user sign-up, login, email verification, password resets, and session management.
+
+## Core Technology: Supabase Auth
+
+Macru utilizes **Supabase Auth** as its primary authentication provider. Supabase Auth offers a comprehensive suite of tools for managing users and securing access.
+
+*   **Email/Password Authentication**: Users can sign up and log in using their email and a password.
+*   **Email Verification**: The system includes an email verification flow to confirm user identity during sign-up. Users receive a verification link, and their account is fully activated upon clicking it.
+*   **Password Reset**: Users who forget their password can request a password reset via email.
+*   **Session Management**: Supabase Auth handles user sessions, ensuring that users remain logged in across browser sessions and that sessions are managed securely. Macru leverages `@supabase/ssr` helpers for consistent cookie handling and session synchronization between client-side actions and server-side checks (like middleware and API routes).
+
+## Key Implementation Details
+
+*   **AuthContext (`lib/context/auth-context.tsx`)**: A React Context provider is used to make authentication state (e.g., current user, loading status) and auth methods (signIn, signUp, signOut, resetPassword) globally available throughout the client-side application.
+*   **AuthService (`lib/services/auth-service.ts`)**: This service encapsulates Supabase authentication API calls, providing a clean interface for auth-related operations.
+*   **Middleware (`middleware.ts`)**: Next.js middleware is used to protect routes. It checks the user's authentication status and redirects unauthenticated users to the login page or authenticated users away from public auth pages (like login/signup if already logged in).
+*   **Form Validation (`lib/validations/auth.ts`)**: User input for authentication forms (login, signup, reset password) is validated using Zod schemas to ensure data integrity.
+*   **UI Components (`app/components/auth/`)**: Dedicated React components are used for Login, Signup, and Reset Password forms, built with `shadcn/ui` for a consistent look and feel.
+*   **API Route Authentication**: Server-side API routes also leverage `@supabase/ssr`'s `createServerClient` with cookie handling to verify user sessions for protected backend operations.
+
+*Initial implementation of the authentication system is detailed in `devlog.txt` entry `[2025-03-27] Authentication System Implementation`.*
+*Fixes and enhancements to the email verification flow and session synchronization are covered in `[2025-04-25] Authentication Email Verification Fix` and `[2025-04-26] Authentication Flow and Component Fixes`.*
+*Troubleshooting API route authentication (`AuthSessionMissingError`) is noted in `[2025-04-28] Fix Supabase API Route Authentication`.*
+
+## Security Considerations
+
+*   **Row-Level Security (RLS)**: While Supabase Auth handles user identity, Supabase's RLS policies on database tables ensure that authenticated users can only access data they are permitted to see (typically their own).
+*   **Secure API Key Handling**: API keys for Supabase (like `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`) are managed via environment variables. 

@@ -1,0 +1,89 @@
+---
+title: "Data Ingestion in Macru"
+description: "Learn how Macru ingests data from various sources to build your knowledge base."
+---
+
+# Data Ingestion
+
+Macru is designed to centralize your fragmented information by securely ingesting data from various sources. This process makes your data accessible for unified querying and analysis.
+
+## Overview
+
+The ingestion process involves:
+1.  Connecting to a data source (e.g., file upload, Notion, Google Calendar, Gmail).
+2.  Fetching or receiving the data.
+3.  Processing the data:
+    *   Extracting text content.
+    *   Extracting available structured metadata (e.g., creation dates, authors, status from Notion properties, event times from Calendar).
+    *   Chunking the text into manageable segments.
+    *   Generating vector embeddings for semantic search.
+4.  Storing the processed data (original content references, extracted text, chunks, metadata, and embeddings) securely in Supabase.
+
+## Direct File Uploads
+
+You can directly upload files to Macru. Supported formats typically include:
+*   PDF (`.pdf`)
+*   Microsoft Word (`.docx`)
+*   Plain Text (`.txt`)
+
+Uploaded files are processed through the standard pipeline: text is extracted, content is chunked, and embeddings are generated and stored.
+
+*Refer to `devlog.txt` entries like `[2025-03-29] File Upload System Implementation` and `[2025-04-04] Enhanced File Management System` for more technical details.*
+
+## Data Connectors
+
+Macru uses a modular `DataConnector` pattern (defined in `lib/types/data-connector.ts`) to integrate with external services. This allows for easy expansion to new data sources in the future.
+
+### Notion Integration
+
+*   **Connection**: Connect your Notion workspace via OAuth 2.0.
+*   **Data Fetched**: Macru can fetch page content and structured properties from your Notion databases and pages (e.g., Status, Dates, People, Select properties).
+*   **Sync**: Includes automatic background synchronization using Supabase Edge Functions (`sync-notion-all-users`) and manual sync options.
+*   **Implementation Details**:
+    *   See `devlog.txt` entries: `[2025-04-24] Notion Connector Setup (Task 8 - Part 1)`, `[2025-04-30] Automatic Notion Sync & Source Timestamps`, and `[2025-05-01] Structured Metadata Handling (Task 15.1 & 15.2)`.
+
+### Google Calendar Integration
+
+*   **Connection**: Connect your Google Calendar via OAuth 2.0.
+*   **Data Fetched**: Macru fetches event details including title, description, attendees, location, and event start/end times.
+*   **Sync**: Supports manual sync, with initial sync focusing on current/future events to improve relevance.
+*   **Implementation Details**:
+    *   See `devlog.txt` entries: `Google Calendar Connector Implementation & Debugging`, `Google Calendar Connector Debugging Session 2`, and `[2025-05-03] Google Calendar Connector Refinement`.
+
+### Gmail Integration
+
+*   **Connection**: Connect your Gmail account via OAuth 2.0.
+*   **Data Fetched**: Retrieves email content (subject, body, sender, date) and attempts to parse the email body.
+*   **Sync**: Supports manual sync, with initial sync focusing on recent emails (e.g., last 24 hours).
+*   **Implementation Details**:
+    *   See `devlog.txt` entries: `[2025-05-07] Gmail Connector Implementation (Initial)` and `[2025-05-07] Gmail Connector Source Display Fixes`.
+
+## Document Processing Pipeline
+
+Once data is fetched (either via upload or a connector), it goes through a processing pipeline:
+
+1.  **Text Extraction** (`lib/services/text-extractor.ts`):
+    *   Extracts textual content from files (e.g., using `pdf-parse` for PDFs, `mammoth` for DOCX).
+    *   For connector data, the raw text content is usually provided by the connector itself (e.g., Notion page content, email body).
+2.  **Chunking** (`lib/services/document-chunker.ts`):
+    *   Divides the extracted text into smaller, manageable segments (chunks). This is important for fitting content into LLM context windows and for effective embedding generation.
+    *   Various chunking strategies can be employed (e.g., fixed size, by paragraph).
+3.  **Embedding Generation** (`lib/services/embedding-service.ts`):
+    *   Generates vector embeddings for each text chunk using a chosen LLM (e.g., Google Gemini). These embeddings capture the semantic meaning of the text.
+4.  **Storage** (Supabase Postgres):
+    *   **`documents` table**: Stores metadata about the ingested items (e.g., original source ID, title, type, owner, timestamps like `source_created_at`, `source_updated_at`, and structured metadata like `event_start_time`, `content_status`).
+    *   **`chunks` table**: Stores the individual text chunks, linked to their parent document.
+    *   **`embeddings` table**: Stores the vector embeddings, linked to their respective chunks (using `pgvector` extension for efficient similarity search).
+
+*Refer to `devlog.txt` entries `[2025-04-16] Document Processing Pipeline Implementation`, `[2025-04-09] Document Processing Database Schema Setup`, and `[2025-05-01] Structured Metadata Handling (Task 15.1 & 15.2)` for extensive details on the pipeline and database schema.*
+
+## Structured Metadata Handling
+
+Beyond raw text, Macru aims to capture and utilize structured metadata from your sources. This includes:
+*   Timestamps (creation, modification, event start/end, due dates)
+*   Status fields
+*   Priority levels
+*   Participants/Assignees
+*   Locations
+
+This structured metadata is stored in the `documents` table and is used alongside vector search during the querying process (Hybrid Query Engine) to provide more precise and contextually relevant results. 
