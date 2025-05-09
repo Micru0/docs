@@ -23,21 +23,7 @@
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Macru Overview",
-          "href": "https://github.com/Spa42/macru",
-          "icon": "house"
-        },
-        {
-          "anchor": "Key Features",
-          "href": "https://github.com/Spa42/docs/tree/main/FEATURES",
-          "icon": "star"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/images/logo2.png",
