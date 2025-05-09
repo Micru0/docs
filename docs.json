@@ -3,11 +3,11 @@
   "theme": "mint",
   "name": "Macru Documentation",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#00ADB5",
+    "light": "#A0FFFF",
+    "dark": "#007A7F"
   },
-  "favicon": "/logo/macrulogo.png",
+  "favicon": "/images/macrulogo.png",
   "navigation": {
     "tabs": [
       {
@@ -18,32 +18,32 @@
             "icon": "rocket",
             "pages": [
               "index",
-              "GETTING_STARTED"
+              {"page": "GETTING_STARTED", "icon": "rocket"}
             ]
           },
           {
             "group": "Macru Documentation",
             "icon": "book-open-cover",
             "pages": [
-              "ARCHITECTURE",
-              "FEATURES/DATA_INGESTION",
-              "FEATURES/QUERYING_DATA",
-              "FEATURES/MULTI_LLM_ARCHITECTURE",
-              "FEATURES/MEMORY_LAYER",
-              "FEATURES/ACTION_LAYER",
-              "FEATURES/AUTHENTICATION",
-              "FEATURES/USER_INTERFACE",
-              "DEVELOPMENT_GUIDE",
-              "TROUBLESHOOTING"
+              {"page": "ARCHITECTURE", "icon": "network-wired"},
+              {"page": "FEATURES/DATA_INGESTION", "icon": "database-arrow-down"},
+              {"page": "FEATURES/QUERYING_DATA", "icon": "magnifying-glass-waveform"},
+              {"page": "FEATURES/MULTI_LLM_ARCHITECTURE", "icon": "arrows-split-up-and-left"},
+              {"page": "FEATURES/MEMORY_LAYER", "icon": "brain-arrow-right"},
+              {"page": "FEATURES/ACTION_LAYER", "icon": "person-running-fast"},
+              {"page": "FEATURES/AUTHENTICATION", "icon": "user-shield"},
+              {"page": "FEATURES/USER_INTERFACE", "icon": "computer-mouse-scrollwheel"},
+              {"page": "DEVELOPMENT_GUIDE", "icon": "code-branch"},
+              {"page": "TROUBLESHOOTING", "icon": "wrench"}
             ]
           },
           {
             "group": "Connectors",
             "icon": "plug",
             "pages": [
-              "CONNECTORS/NOTION_CONNECTOR",
-              "CONNECTORS/GOOGLE_CALENDAR_CONNECTOR",
-              "CONNECTORS/GMAIL_CONNECTOR"
+              {"page": "CONNECTORS/NOTION_CONNECTOR", "icon": "file-lines"},
+              {"page": "CONNECTORS/GOOGLE_CALENDAR_CONNECTOR", "icon": "calendar-days"},
+              {"page": "CONNECTORS/GMAIL_CONNECTOR", "icon": "envelope-open-text"}
             ]
           }
         ]
@@ -65,8 +65,8 @@
     }
   },
   "logo": {
-    "light": "/logo/macrulogo.png",
-    "dark": "/logo/macrulogo.png"
+    "light": "/images/logo2.png",
+    "dark": "/images/logo2.png"
   },
   "navbar": {
     "links": []
