@@ -7,7 +7,7 @@
     "light": "#07C983",
     "dark": "#15803D"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/logo/macrulogo.png",
   "navigation": {
     "tabs": [
       {
@@ -47,26 +47,6 @@
             ]
           }
         ]
-      },
-      {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "API Documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint Examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
-            ]
-          }
-        ]
       }
     ],
     "global": {
@@ -80,37 +60,16 @@
           "anchor": "Key Features",
           "href": "https://github.com/Spa42/docs/tree/main/FEATURES",
           "icon": "star"
-        },
-        {
-          "anchor": "Get Support",
-          "href": "mailto:hi@mintlify.com",
-          "icon": "envelope"
         }
       ]
     }
   },
   "logo": {
-    "light": "/logo/macru_logo.png",
-    "dark": "/logo/macru_logo.png"
+    "light": "/logo/macrulogo.png",
+    "dark": "/logo/macrulogo.png"
   },
   "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
+    "links": []
   },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
-  }
+  "footer": {}
 }

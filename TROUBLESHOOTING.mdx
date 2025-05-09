@@ -1,106 +1,107 @@
 ---
 title: "Troubleshooting Guide"
 description: "Solutions and insights for common issues encountered with Macru."
+icon: "wrench"
 ---
-
-# Troubleshooting Guide
 
 This guide compiles common issues encountered during the development and setup of Macru, along with their resolutions or root causes, primarily drawn from the `devlog.txt`.
 
 ## Authentication Issues
 
-*   **Problem**: Users can't log in after email verification, potentially stuck in a loop redirecting to login.
-    *   **Cause**: Session synchronization issues between client-side authentication and server-side middleware checks. Often related to incorrect Supabase client initialization or cookie handling.
-    *   **Solution**: Ensure consistent use of `@supabase/ssr` helpers (`createBrowserClient` on client, `createServerClient` on server/API routes) with proper cookie handling.
-    *   *See `devlog.txt` entry `[2025-04-26] Authentication Flow and Component Fixes`.*
+### **Problem**: Users can't log in after email verification, potentially stuck in a loop redirecting to login.
+*   **Cause**: Session synchronization issues between client-side authentication and server-side middleware checks. Often related to incorrect Supabase client initialization or cookie handling.
+*   **Solution**: Ensure consistent use of `@supabase/ssr` helpers (`createBrowserClient` on client, `createServerClient` on server/API routes) with proper cookie handling.
+*   *See `devlog.txt` entry `[2025-04-26] Authentication Flow and Component Fixes`.*
 
-*   **Problem**: Email verification emails not sent or verification link doesn't work correctly.
-    *   **Cause**: Signup form not connected to the auth service, missing server-side callback route (`/auth/callback`), or incorrect redirect paths configured in Supabase/auth service.
-    *   **Solution**: Ensure `auth-service.ts` is correctly called from `SignupForm.tsx`, the callback route exists and handles the verification token, redirect URLs are correctly configured in Supabase Auth settings, and middleware doesn't block the callback route.
-    *   *See `devlog.txt` entry `[2025-04-25] Authentication Email Verification Fix`.*
+### **Problem**: Email verification emails not sent or verification link doesn't work correctly.
+*   **Cause**: Signup form not connected to the auth service, missing server-side callback route (`/auth/callback`), or incorrect redirect paths configured in Supabase/auth service.
+*   **Solution**: Ensure `auth-service.ts` is correctly called from `SignupForm.tsx`, the callback route exists and handles the verification token, redirect URLs are correctly configured in Supabase Auth settings, and middleware doesn't block the callback route.
+*   *See `devlog.txt` entry `[2025-04-25] Authentication Email Verification Fix`.*
 
-*   **Problem**: Server-side API routes fail with `AuthSessionMissingError` (401 Unauthorized) even when requests seem to have auth cookies.
-    *   **Cause**: Incorrect initialization of the Supabase server client within the API route, missing cookie handling logic, or issues with how the auth token is passed (e.g., truncated token in test tools like `curl`).
-    *   **Solution**: Consistently use the `createServerClient` pattern from `@supabase/ssr` *within* the API route handler, correctly passing cookies retrieved via `cookies()` from `next/headers`. Ensure the full, unmodified `sb-*-auth-token` cookie value is used in testing tools.
-    *   *See `devlog.txt` entry `[2025-04-28] Fix Supabase API Route Authentication`.*
+### **Problem**: Server-side API routes fail with `AuthSessionMissingError` (401 Unauthorized) even when requests seem to have auth cookies.
+*   **Cause**: Incorrect initialization of the Supabase server client within the API route, missing cookie handling logic, or issues with how the auth token is passed (e.g., truncated token in test tools like `curl`).
+*   **Solution**: Consistently use the `createServerClient` pattern from `@supabase/ssr` *within* the API route handler, correctly passing cookies retrieved via `cookies()` from `next/headers`. Ensure the full, unmodified `sb-*-auth-token` cookie value is used in testing tools.
+*   *See `devlog.txt` entry `[2025-04-28] Fix Supabase API Route Authentication`.*
 
-*   **Problem**: New user signup fails with "Database error saving new user."
-    *   **Cause**: Database trigger dependency issue. The `set_profiles_timestamp` trigger (from migration `001`) might rely on the `trigger_set_timestamp` function (created later, e.g., migration `005`), but the trigger wasn't updated after the function was created.
-    *   **Solution**: Re-apply the `set_profiles_timestamp` trigger definition using the Supabase SQL editor after ensuring the required function exists.
-    *   *See `devlog.txt` entry `[2025-04-30] Auth, Memory, and LLM Action Fixes`.*
+### **Problem**: New user signup fails with "Database error saving new user."
+*   **Cause**: Database trigger dependency issue. The `set_profiles_timestamp` trigger (from migration `001`) might rely on the `trigger_set_timestamp` function (created later, e.g., migration `005`), but the trigger wasn't updated after the function was created.
+*   **Solution**: Re-apply the `set_profiles_timestamp` trigger definition using the Supabase SQL editor after ensuring the required function exists.
+*   *See `devlog.txt` entry `[2025-04-30] Auth, Memory, and LLM Action Fixes`.*
 
-*   **Problem**: Password reset emails are not being received.
-    *   **Cause**: Likely due to Supabase's default email provider rate limits for free-tier projects.
-    *   **Solution**: Configure a custom SMTP provider in your Supabase project settings for reliable email delivery.
-    *   *See `devlog.txt` entry `[2025-04-30] Auth, Memory, and LLM Action Fixes`.*
+### **Problem**: Password reset emails are not being received.
+*   **Cause**: Likely due to Supabase's default email provider rate limits for free-tier projects.
+*   **Solution**: Configure a custom SMTP provider in your Supabase project settings for reliable email delivery.
+*   *See `devlog.txt` entry `[2025-04-30] Auth, Memory, and LLM Action Fixes`.*
 
 ## Connector Issues
 
-*   **Problem**: Google Connector OAuth flow fails with `403: access_denied`.
-    *   **Cause**: Standard Google security for unverified apps requesting sensitive scopes.
-    *   **Solution**: For development, add test user emails to the Google Cloud Console OAuth Consent Screen settings. For production, the app needs to undergo Google verification.
-    *   *See `devlog.txt` entry `Dev Log Entry: Google Calendar Connector Implementation & Debugging`.*
+### **Problem**: Google Connector OAuth flow fails with `403: access_denied`.
+*   **Cause**: Standard Google security for unverified apps requesting sensitive scopes.
+*   **Solution**: For development, add test user emails to the Google Cloud Console OAuth Consent Screen settings. For production, the app needs to undergo Google verification.
+*   *See `devlog.txt` entry `Dev Log Entry: Google Calendar Connector Implementation & Debugging`.*
 
-*   **Problem**: Google Connector status doesn't update in UI after successful OAuth flow.
-    *   **Cause**: Various potential issues: missing `userId` passed to status check function, missing database columns (`expiry_date`), incorrect data format for saving (e.g., `scopes` string vs. array), errors in token saving logic.
-    *   **Solution**: Debug the callback route (`.../auth/callback/route.ts`) and token saving functions (`saveGoogleToken` etc.). Ensure database schema matches expected token fields (`connector_tokens` table). Verify data formats before upserting. Ensure status check route (`.../status/route.ts`) receives and uses the `userId`.
-    *   *See `devlog.txt` entry `Dev Log Entry: Google Calendar Connector Debugging Session 2`.*
+### **Problem**: Google Connector status doesn't update in UI after successful OAuth flow.
+*   **Cause**: Various potential issues: missing `userId` passed to status check function, missing database columns (`expiry_date`), incorrect data format for saving (e.g., `scopes` string vs. array), errors in token saving logic.
+*   **Solution**: Debug the callback route (`.../auth/callback/route.ts`) and token saving functions (`saveGoogleToken` etc.). Ensure database schema matches expected token fields (`connector_tokens` table). Verify data formats before upserting. Ensure status check route (`.../status/route.ts`) receives and uses the `userId`.
+*   *See `devlog.txt` entry `Dev Log Entry: Google Calendar Connector Debugging Session 2`.*
 
-*   **Problem**: Notion Connector status check fails with `401 Unauthorized`, potentially causing UI loops/flickering.
-    *   **Cause**: Incorrect storage format for the Notion access token in the `connector_tokens` table (e.g., stored as a Node.js Buffer string representation instead of the plain token).
-    *   **Solution**: Fix the token saving logic in the callback route. Add checks in the status route to handle malformed tokens gracefully. Manually clean up corrupted tokens in the database. Adjust UI fetching logic (`useEffect` dependencies) to prevent excessive re-fetching.
-    *   *See `devlog.txt` entry `[2025-04-24] Notion Connector Setup (Task 8 - Part 1)`.*
+### **Problem**: Notion Connector status check fails with `401 Unauthorized`, potentially causing UI loops/flickering.
+*   **Cause**: Incorrect storage format for the Notion access token in the `connector_tokens` table (e.g., stored as a Node.js Buffer string representation instead of the plain token).
+*   **Solution**: Fix the token saving logic in the callback route. Add checks in the status route to handle malformed tokens gracefully. Manually clean up corrupted tokens in the database. Adjust UI fetching logic (`useEffect` dependencies) to prevent excessive re-fetching.
+*   *See `devlog.txt` entry `[2025-04-24] Notion Connector Setup (Task 8 - Part 1)`.*
 
-*   **Problem**: Gmail connector shows incorrect source name (e.g., "Unknown Document") in chat UI.
-    *   **Cause**: Email subject not correctly mapped to `metadata.title` during ingestion (`lib/connectors/gmail.ts`), `DocumentProcessor` not prioritizing this field for `documents.title`, or the API route (`/api/llm/test`) not using the correct field (`chunk.document_title`) for display name generation.
-    *   **Solution**: Ensure the connector maps the subject to `metadata.title`. Update `DocumentProcessor` to use `providedMetadata.title`. Update the LLM API route to use `chunk.document_title` for the display name.
-    *   *See `devlog.txt` entry `[2025-05-07] Gmail Connector Source Display Fixes`.*
+### **Problem**: Gmail connector shows incorrect source name (e.g., "Unknown Document") in chat UI.
+*   **Cause**: Email subject not correctly mapped to `metadata.title` during ingestion (`lib/connectors/gmail.ts`), `DocumentProcessor` not prioritizing this field for `documents.title`, or the API route (`/api/llm/test`) not using the correct field (`chunk.document_title`) for display name generation.
+*   **Solution**: Ensure the connector maps the subject to `metadata.title`. Update `DocumentProcessor` to use `providedMetadata.title`. Update the LLM API route to use `chunk.document_title` for the display name.
+*   *See `devlog.txt` entry `[2025-05-07] Gmail Connector Source Display Fixes`.*
 
-*   **Problem**: Connector actions fail (e.g., Google Calendar event creation).
-    *   **Cause**: Missing required OAuth scopes (e.g., `calendar.events`), errors in action execution logic in `/api/action/route.ts`, incorrect `ActionLogger` calls, or RLS policies preventing logging by the service role.
-    *   **Solution**: Add necessary scopes to the OAuth start route (may require user re-authentication). Debug the `/api/action` route logic. Ensure RLS policies on `action_logs` allow inserts by the service role.
-    *   *See `devlog.txt` entry `[2025-05-04] LLM Response & Action Handling Refinements`.*
+### **Problem**: Connector actions fail (e.g., Google Calendar event creation).
+*   **Cause**: Missing required OAuth scopes (e.g., `calendar.events`), errors in action execution logic in `/api/action/route.ts`, incorrect `ActionLogger` calls, or RLS policies preventing logging by the service role.
+*   **Solution**: Add necessary scopes to the OAuth start route (may require user re-authentication). Debug the `/api/action` route logic. Ensure RLS policies on `action_logs` allow inserts by the service role.
+*   *See `devlog.txt` entry `[2025-05-04] LLM Response & Action Handling Refinements`.*
 
 ## Deployment Issues (Vercel)
 
-*   **Problem**: Build fails due to missing environment variables (`supabaseUrl is required`, etc.).
-    *   **Cause**: Required environment variables (Supabase keys, connector keys, API keys, `APP_URL`, etc.) are not configured in the Vercel project settings for the Production environment. Also, ensure server-side code uses server-role keys where appropriate, not just public keys.
-    *   **Solution**: Add all required environment variables listed in `.env.local.example` or `README.md` to the Vercel project environment variables settings.
-    *   *See `devlog.txt` entry `[2025-05-01] Vercel Production Deployment`.*
+### **Problem**: Build fails due to missing environment variables (`supabaseUrl is required`, etc.).
+*   **Cause**: Required environment variables (Supabase keys, connector keys, API keys, `APP_URL`, etc.) are not configured in the Vercel project settings for the Production environment. Also, ensure server-side code uses server-role keys where appropriate, not just public keys.
+*   **Solution**: Add all required environment variables listed in `.env.local.example` or `README.md` to the Vercel project environment variables settings.
+*   *See `devlog.txt` entry `[2025-05-01] Vercel Production Deployment`.*
 
-*   **Problem**: Build fails due to peer dependency conflicts (e.g., `date-fns`, `react-day-picker`).
-    *   **Cause**: Version mismatches between libraries or incompatibilities with the React version.
-    *   **Solution**: Adjust package versions (upgrade or downgrade) as necessary to resolve conflicts, checking library compatibility notes.
-    *   *See `devlog.txt` entry `[2025-05-01] Vercel Production Deployment`.*
+### **Problem**: Build fails due to peer dependency conflicts (e.g., `date-fns`, `react-day-picker`).
+*   **Cause**: Version mismatches between libraries or incompatibilities with the React version.
+*   **Solution**: Adjust package versions (upgrade or downgrade) as necessary to resolve conflicts, checking library compatibility notes.
+*   *See `devlog.txt` entry `[2025-05-01] Vercel Production Deployment`.*
 
-*   **Problem**: Build fails due to numerous TypeScript or ESLint errors.
-    *   **Cause**: Underlying type errors or linting rule violations in the codebase.
-    *   **Solution (Temporary Workaround)**: Disable TypeScript (`ignoreBuildErrors: true`) and/or ESLint (`ignoreDuringBuilds: true`) checks in `next.config.ts` to allow deployment. Use type workarounds like `@ts-ignore` or `any` sparingly.
-    *   **Solution (Proper Fix)**: Address the underlying type errors and linting issues in the code. Re-enable checks in `next.config.ts`.
-    *   *See `devlog.txt` entry `[2025-05-01] Vercel Production Deployment`.*
+### **Problem**: Build fails due to numerous TypeScript or ESLint errors.
+*   **Cause**: Underlying type errors or linting rule violations in the codebase.
+*   **Solution (Temporary Workaround)**: Disable TypeScript (`ignoreBuildErrors: true`) and/or ESLint (`ignoreDuringBuilds: true`) checks in `next.config.ts` to allow deployment. Use type workarounds like `@ts-ignore` or `any` sparingly.
+*   **Solution (Proper Fix)**: Address the underlying type errors and linting issues in the code. Re-enable checks in `next.config.ts`.
+*   *See `devlog.txt` entry `[2025-05-01] Vercel Production Deployment`.*
 
 ## General Development Issues
 
-*   **Problem**: React hydration errors, often involving incorrect nesting (e.g., `<pre>` inside `<p>`).
-    *   **Cause**: Mismatch between server-rendered HTML and client-side rendered HTML, often due to invalid HTML structure in components.
-    *   **Solution**: Correct the component's rendering logic to produce valid HTML (e.g., wrap block code in a `<div>` instead of nesting `<pre>` directly in `<p>`).
-    *   *See `devlog.txt` entry `[2025-04-30] Auth, Memory, and LLM Action Fixes`.*
+### **Problem**: React hydration errors, often involving incorrect nesting (e.g., `<pre>` inside `<p>`).
+*   **Cause**: Mismatch between server-rendered HTML and client-side rendered HTML, often due to invalid HTML structure in components.
+*   **Solution**: Correct the component's rendering logic to produce valid HTML (e.g., wrap block code in a `<div>` instead of nesting `<pre>` directly in `<p>`).
+*   *See `devlog.txt` entry `[2025-04-30] Auth, Memory, and LLM Action Fixes`.*
 
-*   **Problem**: Components requiring client-side hooks (like `useState`, `useEffect`, `useSearchParams`) fail to render or cause errors.
-    *   **Cause**: Missing `"use client"` directive at the top of the component file in the Next.js App Router.
-    *   **Solution**: Add `"use client";` to the top of the affected component files. Wrap components using `useSearchParams` in `<Suspense>` boundaries.
-    *   *See `devlog.txt` entries `[2025-04-07]`, `[2025-04-26]`, `[2025-05-01]`.*
+### **Problem**: Components requiring client-side hooks (like `useState`, `useEffect`, `useSearchParams`) fail to render or cause errors.
+*   **Cause**: Missing `"use client"` directive at the top of the component file in the Next.js App Router.
+*   **Solution**: Add `"use client";` to the top of the affected component files. Wrap components using `useSearchParams` in `<Suspense>` boundaries.
+*   *See `devlog.txt` entries `[2025-04-07]`, `[2025-04-26]`, `[2025-05-01]`.*
 
-*   **Problem**: Supabase CLI commands fail (`command not found`) or require Docker.
-    *   **Cause**: Supabase CLI not installed globally or not in PATH. Some commands (`functions deploy`) might require Docker Desktop to be running.
-    *   **Solution**: Install CLI globally (`npm install -g supabase`) or use `npx supabase ...`. Ensure Docker Desktop is running if needed for specific commands. Note the project's specific workflow often involves manual SQL application via Supabase Studio instead of local CLI commands like `migration up`.
-    *   *See `devlog.txt` entry `[2025-04-30] Automatic Notion Sync & Source Timestamps` and `PRD.txt` Section 7.6.*
+### **Problem**: Supabase CLI commands fail (`command not found`) or require Docker.
+*   **Cause**: Supabase CLI not installed globally or not in PATH. Some commands (`functions deploy`) might require Docker Desktop to be running.
+*   **Solution**: Install CLI globally (`npm install -g supabase`) or use `npx supabase ...`. Ensure Docker Desktop is running if needed for specific commands. Note the project's specific workflow often involves manual SQL application via Supabase Studio instead of local CLI commands like `migration up`.
+*   *See `devlog.txt` entry `[2025-04-30] Automatic Notion Sync & Source Timestamps` and `PRD.txt` Section 7.6.*
 
-*   **Problem**: Terminal spam with `Error: Route ... used cookies().get(...) ... cookies() should be awaited`.
-    *   **Cause**: Calling Supabase client initialization helpers (that internally use `cookies().get()`) without `await`-ing the `cookies()` call itself, often within shared utility functions or class methods used across different contexts (client/server).
-    *   **Solution**: Refactor code to ensure `cookies()` is awaited before being passed to or used by the Supabase client initialization function (`createServerClient` or `createBrowserClient`). Avoid sharing client instances created in one context (e.g., server component) with another (e.g., client component) without careful handling.
-    *   *See `devlog.txt` entry `Dev Log Entry: Google Calendar Connector Implementation & Debugging`.*
+### **Problem**: Terminal spam with `Error: Route ... used cookies().get(...) ... cookies() should be awaited`.
+*   **Cause**: Calling Supabase client initialization helpers (that internally use `cookies().get()`) without `await`-ing the `cookies()` call itself, often within shared utility functions or class methods used across different contexts (client/server).
+*   **Solution**: Refactor code to ensure `cookies()` is awaited before being passed to or used by the Supabase client initialization function (`createServerClient` or `createBrowserClient`). Avoid sharing client instances created in one context (e.g., server component) with another (e.g., client component) without careful handling.
+*   *See `devlog.txt` entry `Dev Log Entry: Google Calendar Connector Implementation & Debugging`.*
 
 ---
 
-*Always refer to the detailed `devlog.txt` in the Macru project root (`/Users/micru/macru/macru/devlog.txt`) for the most specific context and step-by-step debugging information related to these and other issues.* 
+<Note icon="book-reader">
+  Always refer to the detailed `devlog.txt` in the Macru project root (`/Users/micru/macru/macru/devlog.txt`) for the most specific context and step-by-step debugging information related to these and other issues.
+</Note> 

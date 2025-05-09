@@ -1,58 +1,83 @@
 ---
-title: "Development Guide"
-description: "Information for developers working on or contributing to Macru."
+title: "Macru Development Guide"
+description: "Essential information, workflows, and best practices for developers contributing to or working on the Macru application."
+icon: "code-branch"
 ---
 
 # Development Guide
 
-This guide provides essential information for developers working on the Macru application codebase.
+This guide provides essential information, workflows, and best practices for developers working on the Macru application codebase. Adhering to these guidelines will help maintain code quality, consistency, and a smooth development process.
 
-## Contributing
+## Contributing to Macru
 
-(Currently, there are no formal contribution guidelines outlined. If this were an open-source project, this section would typically cover branching strategies, commit message formats, pull request processes, and code of conduct.)
+<Note>
+  Currently, Macru is developed by a core team, and formal public contribution guidelines (e.g., for an open-source model) are not yet established. If this changes, this section will be updated to cover branching strategies, commit message formats, pull request processes, and a code of conduct.
+</Note>
 
-## Coding Style
+## Coding Style & Best Practices
 
-*   **Consistency**: Aim to follow the existing coding style found in the project for consistency.
-*   **TypeScript**: Leverage TypeScript features for type safety.
-*   **Readability**: Use descriptive variable and function names. Add comments only for non-trivial logic that isn't clear from the code itself.
-*   **Modularity**: Follow principles of modular design to enhance maintainability and reusability (e.g., the DataConnector pattern, service layers).
+Maintain a high standard of code quality by following these guidelines:
 
-## Testing
+*   **Consistency**: Strive to follow the existing coding patterns and style found throughout the project. This promotes readability and easier maintenance.
+*   **TypeScript First**: Leverage TypeScript's strong typing features to enhance code safety, improve developer tooling, and catch errors early.
+*   **Readability is Key**: Use clear, descriptive, and intention-revealing names for variables, functions, and classes. Add comments primarily for non-trivial logic or complex algorithms that aren't immediately obvious from the code itself.
+*   **Embrace Modularity**: Follow principles of modular design. For instance, the `DataConnector` pattern and distinct service layers help keep the codebase organized, testable, and easier to extend.
 
-(The `devlog.txt` mentions the creation of test files for the document processing pipeline (`lib/services/__tests__/*.test.ts`, `app/api/documents/ingest/__tests__/route.test.ts`). This section could be expanded with details on how to run these tests and the overall testing strategy if more information is available.)
+## Testing Strategy
 
-*   Unit and integration tests exist for some core components like the document processing pipeline.
-*   Run tests using the relevant command (e.g., `npm test`, `yarn test`, or specific jest commands if configured).
+<Tip icon="vial-circle-check">
+  The `devlog.txt` mentions the creation of test files for the document processing pipeline (e.g., in ``lib/services/__tests__/*.test.ts`` and ``app/api/documents/ingest/__tests__/route.test.ts``). While a comprehensive testing strategy is evolving, unit and integration tests exist for some core components.
+</Tip>
+
+*   **Running Tests**: Execute tests using the relevant command configured in your `package.json` (e.g., `npm test`, `yarn test`, or specific Jest/Vitest commands).
+*   **Coverage**: Aim to increase test coverage for new features and critical bug fixes.
 
 ## Database Migrations Workflow
 
-Macru uses Supabase for its database. It's crucial to handle database schema changes correctly.
+Macru utilizes Supabase for its database. Managing schema changes effectively is crucial.
 
-**Workflow Notes (from PRD.txt and observations):**
+### Workflow for Schema Changes
 
-1.  **Direct Application**: In the current development setup noted in the PRD, schema changes (like `ALTER TABLE`, `CREATE FUNCTION`) are applied **directly** to the live development database using the Supabase Studio SQL Editor. **Local Supabase CLI commands like `supabase db reset` or `supabase migration up` are typically NOT used.**
-2.  **Check Existing Migrations**: Before making schema changes, **ALWAYS** check the `scripts/migrations/` and `supabase/migrations/` directories for existing migration files related to the tables or functions you intend to modify. This helps prevent conflicts.
-3.  **Create New Migration File**: If a schema change is necessary:
-    *   Create a **new** migration file using the Supabase CLI (even if not running migrations locally, this keeps changes version-controlled):
+<Warning icon="triangle-exclamation">
+  The current primary development workflow, as noted in the ``PRD.txt`` and observed in `devlog.txt`, involves applying schema changes (like `ALTER TABLE`, `CREATE FUNCTION`) **directly** to the live development database via the Supabase Studio SQL Editor. Local Supabase CLI commands like `supabase db reset` or `supabase migration up` are generally **not** used for applying migrations in this setup.
+</Warning>
+
+1.  **ALWAYS Check Existing Migrations**: Before planning any schema modification, thoroughly review the ``scripts/migrations/`` and ``supabase/migrations/`` directories. Look for existing migration files related to the tables or functions you intend to modify to prevent conflicts and understand historical changes.
+2.  **Create a New Migration File**: If a schema change is necessary:
+    *   Generate a new migration file using the Supabase CLI. This step is crucial for version controlling your schema changes, even though the migration won't be applied via the CLI in this specific workflow.
         ```bash
-        npx supabase migration new your_migration_description
+        npx supabase migration new your_descriptive_migration_name
         ```
-        *(Note: You might need `npx` if the CLI isn't installed globally. Ensure you are in the Macru project root: `/Users/micru/macru/macru/`)*
-    *   Populate the newly generated SQL file (likely in `supabase/migrations/`) with the exact SQL commands you plan to execute. Make scripts idempotent where possible (e.g., use `IF NOT EXISTS`, `DROP ... IF EXISTS`).
-4.  **Apply Manually**: Execute the SQL commands from your new migration file manually using the Supabase Studio SQL Editor against your development database.
-5.  **Commit**: Commit the new migration file to version control along with your code changes.
+        <Note>You might need `npx` if the Supabase CLI isn't installed globally. Ensure you execute this command from the root of the Macru application project (e.g., ``/Users/micru/macru/macru/``).</Note>
+    *   Open the newly generated SQL file (typically located in ``supabase/migrations/``). Populate it with the precise SQL commands you intend to execute. Where feasible, make your SQL scripts idempotent (e.g., use `IF NOT EXISTS` for table/column creation, or `DROP ... IF EXISTS` before `CREATE`).
+3.  **Apply Manually via Supabase Studio**: Carefully execute the SQL commands from your new migration file using the **SQL Editor** in the Supabase Studio, targeting your development database.
+    <Warning icon="person-digging">
+      Double-check your SQL and the target database before execution. Manual application requires precision.
+    </Warning>
+4.  **Commit Your Changes**: After successful manual application and testing, commit the new SQL migration file to your Git repository along with any related application code changes.
 
-**Why this workflow?** This ensures that schema changes are tracked in Git history, even though they are applied manually to the development database instance. It avoids potential issues with local Supabase environments or Docker if they are not being used consistently by all developers. However, it relies on developers carefully applying migrations manually and in the correct order.
+### Rationale for this Workflow
 
-*(See `devlog.txt` `[2025-04-30] Automatic Notion Sync & Source Timestamps` and PRD Section 7.6 for context on Supabase CLI issues and the manual workflow note).*
+This hybrid approach (CLI for generation, manual application) aims to:
+*   Ensure all schema changes are version-controlled in Git.
+*   Avoid potential complexities or inconsistencies with local Supabase environments or Docker setups if they are not uniformly used by all developers.
 
-## Development Log (`devlog.txt`)
+However, it places a strong emphasis on developer diligence in manually applying migrations correctly and in the intended order.
 
-A highly detailed development log is maintained at the root of the Macru project (`/Users/micru/macru/macru/devlog.txt`). This log is an invaluable resource for:
+<Note>
+  Further context on Supabase CLI usage challenges and the evolution of this manual workflow can be found in `devlog.txt` (e.g., `[2025-04-30] Automatic Notion Sync & Source Timestamps`) and the ``PRD.txt`` (Section 7.6: Database Schema Drift / Migration Conflicts).
+</Note>
 
-*   Understanding the implementation history of features.
-*   Finding details on specific file changes and dependencies added.
-*   Reviewing debugging sessions and fixes for complex issues (e.g., authentication, connector problems).
+## Leveraging the Development Log (``devlog.txt``)
 
-**Always consult the `devlog.txt`** when investigating existing features or troubleshooting complex bugs. 
+<Tip icon="book-open-reader">
+  A highly detailed and chronological **Development Log** is maintained at the root of the Macru project (``/Users/micru/macru/macru/devlog.txt``). This document is an invaluable resource.
+</Tip>
+
+Refer to it frequently for:
+
+*   Understanding the implementation history and evolution of features.
+*   Finding specific details on file changes, dependencies added, or architectural decisions.
+*   Reviewing transcripts of debugging sessions and the resolutions for complex issues (e.g., authentication quirks, connector behaviors, API integrations).
+
+**Always consult the ``devlog.txt``** when investigating existing features, planning new ones that might interact with older code, or troubleshooting complex bugs. It often holds the key to understanding *why* things were built a certain way. 

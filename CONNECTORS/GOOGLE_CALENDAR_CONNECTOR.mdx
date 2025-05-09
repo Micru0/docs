@@ -1,50 +1,77 @@
 ---
-title: "Google Calendar Connector"
-description: "Details on how Macru integrates with your Google Calendar."
+title: "Google Calendar Connector for Macru"
+description: "Integrate your Google Calendar with Macru to ingest event data, enabling queries about your schedule alongside other knowledge."
+icon: "calendar-days"
 ---
 
-# Google Calendar Connector
+Macru integrates with your Google Calendar, allowing you to ingest event data. This means you can query your schedule, meeting details, and event timelines directly within Macru, alongside all your other connected information sources.
 
-Macru can connect to your Google Calendar to ingest event data, allowing you to query your schedule alongside other information.
+## Key Features
 
-## Features
+<CardGroup cols={2}>
+  <Card title="Secure OAuth 2.0" icon="lock-keyhole">
+    Authorize Macru to access your Google Calendar securely using Google's standard OAuth 2.0 flow. Requires ``calendar.readonly``, ``userinfo.email``, and ``openid`` scopes.
+  </Card>
+  <Card title="Comprehensive Event Ingestion" icon="calendar-check">
+    Fetches key event details including title, description, attendees, location, and event start/end times.
+  </Card>
+  <Card title="Structured Time Data" icon="clock-three">
+    Event start and end times are stored as structured metadata (``event_start_time``, ``event_end_time``) in Macru's ``documents`` table, enabling powerful time-based queries.
+  </Card>
+  <Card title="Relevant Event Filtering" icon="filter-circle-dollar">
+    Initial sync focuses on current and future events for relevance. Non-standard events (like contact birthdays) are typically filtered out.
+  </Card>
+  <Card title="Manual Sync Control" icon="hand-point-up">
+    A "Sync Now" button in Macru settings allows you to trigger an immediate synchronization of your Google Calendar data.
+  </Card>
+</CardGroup>
 
-*   **OAuth 2.0 Connection**: Securely authorize Macru to access your Google Calendar using Google's standard OAuth 2.0 flow. Requires `calendar.readonly`, `userinfo.email`, and `openid` scopes.
-*   **Event Ingestion**: Fetches event details including title, description, attendees, location, and event start/end times.
-*   **Structured Metadata**: Event start and end times are stored as structured metadata (`event_start_time`, `event_end_time`) in the `documents` table, enabling time-based queries.
-*   **Relevant Event Filtering**: The initial sync focuses on fetching current and future events to improve relevance and reduce ingestion time. Subsequent syncs (once fully implemented) would fetch events since the last sync time. Non-standard events (like contact birthdays) are typically filtered out.
-*   **Manual Sync**: A "Sync Now" button in the settings allows users to trigger an immediate sync.
+## Connecting Your Google Calendar
 
-## Connection Process
+Follow these steps to connect your Google Calendar to Macru:
 
-1.  Navigate to the **Settings** page in the Macru dashboard.
-2.  Find the **Google Calendar** integration section.
-3.  Click the "Connect" button.
-4.  You will be redirected to Google to authorize Macru. You may need to grant permission for Macru to access your calendar and basic profile information (email).
-    *   *Note: During development, if the Google Cloud app is unverified, you might need to add your email as a test user in the Google Cloud Console OAuth Consent Screen settings.*
-5.  After authorization, you'll be redirected back to Macru.
-6.  The connection status, including the connected Google account email, will be displayed in the settings.
+1.  Navigate to the **Settings** page in your Macru dashboard.
+2.  Locate the **Google Calendar** integration section.
+3.  Click the **"Connect"** button.
+4.  You will be redirected to Google to authorize Macru. Grant permission for Macru to access your calendar and basic profile information (which includes your email address for identification).
+    <Tip icon="lightbulb-on">
+      During development, if your Google Cloud OAuth consent screen is marked as "unverified," you might need to add your email address as a **test user** in the Google Cloud Console under "OAuth consent screen" settings to proceed with authorization.
+    </Tip>
+5.  After successful authorization, you will be redirected back to Macru.
+6.  The connection status, including the email address of the connected Google account, will be updated and displayed in your Macru settings.
 
-## Implementation Details
+## Technical Implementation Details
 
-*   **Connector Logic**: `lib/connectors/google-calendar.ts` (implements the `DataConnector` interface).
-*   **Authentication Flow**:
-    *   Start: `app/api/connectors/google-calendar/auth/start/route.ts`
-    *   Callback: `app/api/connectors/google-calendar/auth/callback/route.ts` (handles code exchange, token saving to `connector_tokens` table, including refresh tokens and expiry dates).
-*   **Status Check**: `app/api/connectors/google-calendar/status/route.ts` (includes logic to check token validity and potentially refresh tokens).
-*   **Disconnection**: `app/api/connectors/google-calendar/disconnect/route.ts` (includes token revocation).
-*   **Sync Endpoint**: `app/api/sync/google-calendar/route.ts` (triggered manually).
-*   **Libraries Used**: `googleapis`.
+For developers interested in the underlying mechanics:
 
-*Key development steps and debugging details can be found in `devlog.txt` entries:*
-*   *`Dev Log Entry: Google Calendar Connector Implementation & Debugging`*
-*   *`Dev Log Entry: Google Calendar Connector Debugging Session 2`*
-*   *`[2025-05-03] Google Calendar Connector Refinement`*
+#### Core Connector Logic
+*   **File**: ``lib/connectors/google-calendar.ts``
+*   **Purpose**: Implements the ``DataConnector`` interface for Google Calendar-specific data handling and API interactions.
 
-## Data Handling
+#### Authentication Flow
+*   **OAuth Start**: ``app/api/connectors/google-calendar/auth/start/route.ts`` (initiates the redirect to Google's consent screen).
+*   **OAuth Callback**: ``app/api/connectors/google-calendar/auth/callback/route.ts`` (handles the redirect from Google, exchanges the authorization code for tokens, and securely saves tokens—including refresh tokens and expiry dates—to the ``connector_tokens`` table).
 
-*   The connector fetches events using the `calendar.events.list` API.
-*   It constructs a `rawContent` string for each event (title, description, attendees, location) to be processed by the `DocumentProcessor`.
-*   Event start/end times are mapped to `event_start_time` and `event_end_time` in the `documents` table.
-*   The Google Calendar Event ID is typically stored as the `source_id`.
-*   The document `title` is populated with the event title. 
+#### Supporting Endpoints
+*   **Status Check**: ``app/api/connectors/google-calendar/status/route.ts`` (verifies the active connection, potentially refreshes tokens if needed).
+*   **Disconnection**: ``app/api/connectors/google-calendar/disconnect/route.ts`` (handles token revocation with Google and removes tokens from Macru).
+*   **Sync Trigger**: ``app/api/sync/google-calendar/route.ts`` (endpoint for manual data synchronization).
+
+#### Key Libraries
+*   ``googleapis`` (Google's official Node.js client library for Google APIs).
+
+<Note icon="code-branch">
+  **Development Highlights (from `devlog.txt`):**
+  *   Initial implementation and debugging: `Dev Log Entry: Google Calendar Connector Implementation & Debugging` and `Dev Log Entry: Google Calendar Connector Debugging Session 2`.
+  *   Refinements to data fetching and filtering: `[2025-05-03] Google Calendar Connector Refinement`.
+</Note>
+
+## Data Handling and Metadata
+
+Macru processes Google Calendar data as follows:
+
+*   **Event Retrieval**: The connector fetches events primarily using the ``calendar.events.list`` method from the Google Calendar API.
+*   **Content Preparation**: For each event, a ``rawContent`` string is constructed (combining title, description, attendees, location) to be processed by Macru's ``DocumentProcessor``.
+*   **Timestamp Mapping**: Event start and end times are accurately mapped to the ``event_start_time`` and ``event_end_time`` columns in Macru's ``documents`` table.
+*   **Source Identification**: The Google Calendar Event ID is typically stored as the ``source_id`` in Macru, linking ingested data back to its origin.
+*   **Title Population**: The ``title`` field in the ``documents`` table is populated with the event's title for easy identification. 

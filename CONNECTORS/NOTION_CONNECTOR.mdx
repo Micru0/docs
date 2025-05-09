@@ -1,56 +1,83 @@
 ---
-title: "Notion Connector"
-description: "Details on how Macru integrates with your Notion workspace."
+title: "Notion Connector for Macru"
+description: "Learn how to connect your Notion workspace to Macru, what data is synced, and key implementation details."
+icon: "file-lines" # Using a generic document icon, or replace if a Notion-specific one is available
 ---
 
-import { Card, CardGroup } from '@mintlify/components';
+Macru seamlessly integrates with your Notion workspace, allowing you to ingest documents, notes, and database entries. This brings your valuable Notion content into your centralized Macru knowledge base for unified querying and insights.
 
-# Notion Connector
+## Key Features
 
-Macru can connect directly to your Notion workspace, allowing you to ingest documents, notes, and database entries alongside your other data sources.
+<CardGroup cols={2}>
+  <Card title="Secure OAuth 2.0" icon="lock-keyhole">
+    Authorize Macru to access your Notion workspace securely using Notion's standard OAuth 2.0 flow.
+  </Card>
+  <Card title="Comprehensive Content Ingestion" icon="file-import">
+    Fetches page content and structured properties (like Status, Date, People, Select) from your selected Notion pages and databases.
+  </Card>
+  <Card title="Rich Structured Metadata" icon="tags">
+    Extracts relevant Notion properties and stores them as structured metadata in Macru's ``documents`` table, enabling precise filtering and querying.
+  </Card>
+  <Card title="Automatic Background Sync" icon="arrows-rotate">
+    A Supabase Edge Function (``sync-notion-all-users``) periodically syncs your Notion data in the background, keeping Macru up-to-date.
+  </Card>
+  <Card title="Manual Sync Control" icon="hand-point-up">
+    A "Sync Now" button in the Macru settings allows you to trigger an immediate synchronization of your Notion data whenever needed.
+  </Card>
+</CardGroup>
 
-## Features
+## Connecting Your Notion Workspace
 
-*   **OAuth 2.0 Connection**: Securely authorize Macru to access your Notion workspace using Notion's standard OAuth flow.
-*   **Content Ingestion**: Fetches page content and structured properties (like Status, Date, People, Select) from your Notion pages and databases.
-*   **Structured Metadata**: Extracts relevant Notion properties and stores them as structured metadata in the `documents` table, enabling more precise querying (e.g., filtering by Notion page status or due date).
-*   **Automatic Background Sync**: A Supabase Edge Function (`sync-notion-all-users`) periodically syncs data for all connected users in the background.
-*   **Manual Sync**: A "Sync Now" button in the settings allows users to trigger an immediate sync.
+Follow these steps to connect Notion to Macru:
 
-## Connection Process
+1.  Navigate to the **Settings** page in your Macru dashboard.
+2.  Locate the **Notion** integration section under "Connections" or a similar heading.
+3.  Click the **"Connect"** button.
+4.  You will be redirected to Notion to authorize Macru. 
+    <Tip>During this step, Notion will likely ask you to select the specific pages or databases you want to grant Macru access to. Choose these carefully to control what data is ingested.</Tip>
+5.  After successfully authorizing, you'll be redirected back to Macru.
+6.  The connection status (often including your connected workspace name) will update in the Macru settings, indicating a successful link.
 
-1.  Navigate to the **Settings** page in the Macru dashboard.
-2.  Find the **Notion** integration section.
-3.  Click the "Connect" button.
-4.  You will be redirected to Notion to authorize Macru. You may need to select the specific pages or databases you want Macru to access.
-5.  After authorization, you'll be redirected back to Macru.
-6.  The connection status (including the connected workspace name, if available) will be displayed in the settings.
+## Technical Implementation Details
 
-## Implementation Details
+For developers interested in the underlying mechanics:
 
-*   **Connector Logic**: `lib/connectors/notion.ts` (implements the `DataConnector` interface).
-*   **Authentication Flow**:
-    *   Start: `app/api/connectors/notion/auth/start/route.ts`
-    *   Callback: `app/api/connectors/notion/auth/callback/route.ts` (handles code exchange, token saving to `connector_tokens` table).
-*   **Status Check**: `app/api/connectors/notion/status/route.ts`.
-*   **Disconnection**: `app/api/connectors/notion/disconnect/route.ts`.
-*   **Sync Endpoint**: `app/api/sync/notion/route.ts` (triggered manually or by the background function).
-*   **Background Sync Function**: `supabase/functions/sync-notion-all-users/index.ts`.
-*   **Libraries Used**: `@notionhq/client`.
+#### Core Connector Logic
+*   **File**: ``lib/connectors/notion.ts``
+*   **Purpose**: Implements the ``DataConnector`` interface for Notion-specific operations.
 
-*Key development steps and debugging details can be found in `devlog.txt` entries:*
-*   *`[2025-04-24] Notion Connector Setup (Task 8 - Part 1)`*
-*   *`[2025-04-30] Automatic Notion Sync & Source Timestamps`*
-*   *`[2025-05-01] Structured Metadata Handling (Task 15.1 & 15.2)`*
+#### Authentication Flow
+*   **OAuth Start**: ``app/api/connectors/notion/auth/start/route.ts`` (initiates the redirect to Notion).
+*   **OAuth Callback**: ``app/api/connectors/notion/auth/callback/route.ts`` (handles the redirect from Notion, exchanges the authorization code for tokens, and securely saves tokens to the ``connector_tokens`` table).
 
-## Data Handling
+#### Supporting Endpoints
+*   **Status Check**: ``app/api/connectors/notion/status/route.ts`` (verifies active connection).
+*   **Disconnection**: ``app/api/connectors/notion/disconnect/route.ts`` (revokes access and deletes tokens).
+*   **Sync Trigger**: ``app/api/sync/notion/route.ts`` (endpoint for manual and background sync triggers).
 
-*   When fetching data, the connector attempts to map standard Notion properties (Status, Date, People, Select) to the structured metadata columns in Macru's `documents` table.
-*   Original Notion page `createdTime` and `lastEditedTime` are stored as `source_created_at` and `source_updated_at`.
-*   The Notion Page ID is typically stored as the `source_id`.
+#### Background Synchronization
+*   **Supabase Edge Function**: ``supabase/functions/sync-notion-all-users/index.ts`` (handles periodic, automated syncing).
+
+#### Key Libraries
+*   ``@notionhq/client`` (Official Notion JavaScript SDK).
+
+<Note icon="code-branch">
+  **Development Highlights (from `devlog.txt`):**
+  *   Initial setup and OAuth flow: `[2025-04-24] Notion Connector Setup (Task 8 - Part 1)`
+  *   Automatic background sync implementation: `[2025-04-30] Automatic Notion Sync & Source Timestamps`
+  *   Enhancements for structured metadata handling: `[2025-05-01] Structured Metadata Handling (Task 15.1 & 15.2)`
+</Note>
+
+## Data Handling and Metadata
+
+Macru processes Notion data as follows:
+
+*   **Structured Property Mapping**: When fetching data, the connector intelligently attempts to map standard Notion properties (such as Status, Date, People, Select options) to the corresponding structured metadata columns in Macru's ``documents`` table.
+*   **Timestamps**: Original Notion page ``createdTime`` and ``lastEditedTime`` are preserved and stored as ``source_created_at`` and ``source_updated_at`` in the ``documents`` table, respectively.
+*   **Source Identification**: The Notion Page ID is typically stored as the ``source_id`` in Macru, providing a clear link back to the original content.
 
 <CardGroup cols={1}>
-<Card title="Important Note on Metadata" icon="info-circle">
-    The successful extraction and storage of structured metadata (like Status or Due Date) depend on the presence and naming convention of corresponding properties in your source Notion pages/databases.
+<Card title="Important Note on Metadata Extraction" icon="info-circle">
+    The successful extraction and accurate storage of structured metadata (like a specific 'Status' or 'Due Date') depend significantly on the presence and consistent naming conventions of corresponding properties within your source Notion pages and databases. Macru looks for common property names and types, but custom or unusually named properties might not be mapped automatically.
 </Card>
 </CardGroup> 
