@@ -1,113 +1,166 @@
 ---
 title: "Macru Architecture"
-description: "An overview of the technical architecture of the Macru application."
+description: "A deep dive into the technical design, components, data models, and infrastructure of the Macru application."
+icon: "network-wired"
 ---
 
 # Macru Architecture
 
-This section provides an overview of the technical architecture of Macru, detailing its system components, data models, APIs, infrastructure, and project structure.
+This section provides a comprehensive overview of the technical architecture of Macru, detailing its system components, data models, APIs, infrastructure, and project structure.
 
 ## System Components
 
-Macru is built with a modular architecture composed of several key components:
+Macru is built with a modular architecture composed of several key components, working in concert to deliver a seamless and intelligent experience:
 
-*   **Frontend**: A Next.js 14 + TypeScript application located in the `/app` and `/components/ui` directories. It handles UI rendering, user interactions, and communication with the backend API.
-*   **Backend API**: Implemented primarily as Next.js API Routes (within `/app/api/`). These serverless functions handle requests for querying, data ingestion triggers, memory management, action execution, and LLM routing. Supabase Functions are also used for specific background tasks (e.g., `sync-notion-all-users`).
-*   **Authentication**: Utilizes **Supabase Auth** for user management, sign-up, login, and session handling.
-*   **Database**: **Supabase Postgres** serves as the primary database for storing:
-    *   User profile information.
-    *   Metadata about ingested documents and items.
-    *   Text chunks derived from documents.
-    *   Vector embeddings (using the `pgvector` extension).
-    *   Personalized user memories (MEM0).
-    *   Connector tokens.
-    *   Action logs.
-*   **Storage**: **Supabase Storage** is used for securely storing user-uploaded files (e.g., PDFs, DOCX files) and potentially other assets like avatars.
-*   **LLM Interface (`lib/llmRouter.ts`)**: A routing layer that connects to external Large Language Model APIs (e.g., Google Gemini, with provisions for others like OpenAI, Anthropic).
-*   **Memory Module (`lib/services/memory-service.ts`, `lib/services/memory-service-server.ts`)**: Provides an interface for interacting with the MEM0 store, initially backed by the Supabase database.
-*   **Data Connectors (`lib/connectors/`)**: Modular components responsible for fetching, transforming, and preparing data from specific external sources (e.g., Notion, Google Calendar, Gmail).
-*   **Embedding Generation Service (`lib/services/embedding-service.ts`)**: Manages the generation of vector embeddings from text chunks, typically using a chosen LLM's embedding capabilities.
-*   **Vector Search**: Leverages the `pgvector` extension within Supabase Postgres for performing similarity searches on text embeddings.
+<ResponseField name="Frontend" type="Next.js 14 + TypeScript">
+  Located in the ``/app`` and ``/components/ui`` directories. It handles UI rendering, user interactions, and communication with the backend API.
+</ResponseField>
+
+<ResponseField name="Backend API" type="Next.js API Routes & Supabase Functions">
+  Primarily Next.js API Routes (within ``/app/api/``). These serverless functions manage querying, data ingestion, memory, actions, and LLM routing. Supabase Functions (e.g., ``sync-notion-all-users``) handle specific background tasks.
+</ResponseField>
+
+<ResponseField name="Authentication" type="Supabase Auth">
+  Utilizes Supabase Auth for robust user management, including sign-up, login, and session handling.
+</ResponseField>
+
+<ResponseField name="Database" type="Supabase Postgres + pgvector & pgsodium">
+  The primary data store for user profiles, document metadata, text chunks, vector embeddings (via `pgvector`), personalized memories (MEM0), connector tokens (secured with `pgsodium` for future encryption), and action logs.
+</ResponseField>
+
+<ResponseField name="Storage" type="Supabase Storage">
+  Securely stores user-uploaded files (PDFs, DOCX) and other assets like avatars.
+</ResponseField>
+
+<ResponseField name="LLM Interface" type="lib/llmRouter.ts">
+  A crucial routing layer (``lib/llmRouter.ts``) that abstracts interactions with external Large Language Model APIs (e.g., Google Gemini), allowing for flexibility and extensibility.
+</ResponseField>
+
+<ResponseField name="Memory Module" type="lib/services/memory-service.ts & memory-service-server.ts">
+  Provides the interface (client: ``memory-service.ts``, server: ``memory-service-server.ts``) for the MEM0 store, enabling personalized, persistent memory for each user, initially backed by Supabase.
+</ResponseField>
+
+<ResponseField name="Data Connectors" type="lib/connectors/*">
+  Modular components within ``lib/connectors/`` responsible for fetching, transforming, and preparing data from external sources like Notion, Google Calendar, and Gmail.
+</ResponseField>
+
+<ResponseField name="Embedding Generation Service" type="lib/services/embedding-service.ts">
+  Manages the creation of vector embeddings from text chunks, typically leveraging the embedding capabilities of a chosen LLM.
+</ResponseField>
+
+<ResponseField name="Vector Search" type="pgvector in Supabase">
+  Utilizes the `pgvector` extension within Supabase Postgres to perform efficient semantic similarity searches on text embeddings.
+</ResponseField>
 
 ## Data Models (High-Level)
 
 The core data entities within Macru include:
 
-*   **Users**: Managed by Supabase Auth, with additional profile information stored in a `profiles` table (e.g., display name, timezone).
-*   **Connector Tokens (`connector_tokens` table)**: Stores authentication tokens (e.g., OAuth access/refresh tokens) for connected third-party services, with RLS for security.
-*   **Documents (`documents` table)**: Stores metadata about each ingested item, such as:
-    *   `user_id` (owner)
-    *   `source_id` (original ID from the source platform)
-    *   `source_type` (e.g., 'file_upload', 'notion', 'google_calendar_event')
-    *   `title`
-    *   `source_url`
-    *   Timestamps (`created_at`, `updated_at`, `source_created_at`, `source_updated_at`)
-    *   Ingestion `status`
-    *   Structured metadata extracted from the source (e.g., `event_start_time`, `content_status`, `priority`, `participants`, `location`).
-*   **Chunks (`chunks` table)**: Stores segments of text extracted from documents, linked to a parent document. Includes fields for `content` and `document_id`.
-*   **Embeddings (`embeddings` table)**: Stores vector embeddings (type `vector`) corresponding to each text chunk, linked via `chunk_id`.
-*   **Memory Items (`memory_items` table)**: Stores user-specific key facts, preferences, or contextual notes, linked to `user_id` and protected by RLS.
-*   **Action Logs (`action_logs` table)**: Records proposed and executed actions, including `user_id`, `action_type`, `status`, `params_snapshot`, and timestamps.
-*   **Query Logs (`queries` table)**: Stores user queries and LLM responses for history and potential analysis.
+#### Users
+*   Managed by Supabase Auth.
+*   Additional profile information (e.g., display name, timezone) stored in the ``profiles`` table.
 
-*(Refer to SQL migration files in `scripts/migrations/` and `supabase/migrations/` for detailed table schemas and relationships.)*
+#### Connector Tokens
+*   Table: ``connector_tokens``
+*   Stores authentication tokens (e.g., OAuth access/refresh tokens) for connected third-party services, secured by RLS.
+
+#### Documents
+*   Table: ``documents``
+*   Stores metadata about each ingested item, including:
+    *   ``user_id`` (owner)
+    *   ``source_id`` (original ID from the source platform)
+    *   ``source_type`` (e.g., 'file_upload', 'notion', 'google_calendar_event')
+    *   ``title`` and ``source_url``
+    *   Timestamps: ``created_at``, ``updated_at``, ``source_created_at``, ``source_updated_at``
+    *   Ingestion ``status``
+    *   Structured metadata: ``event_start_time``, ``content_status``, ``priority``, ``participants``, ``location``, etc.
+
+#### Chunks
+*   Table: ``chunks``
+*   Stores segments of text extracted from documents, linked to a parent document via ``document_id``.
+*   Includes ``content`` of the text chunk.
+
+#### Embeddings
+*   Table: ``embeddings``
+*   Stores vector embeddings (type `vector`) corresponding to each text chunk, linked via ``chunk_id``.
+
+#### Memory Items (MEM0)
+*   Table: ``memory_items``
+*   Stores user-specific key facts, preferences, or contextual notes for the MEM0 layer.
+*   Linked to ``user_id`` and protected by RLS.
+
+#### Action Logs
+*   Table: ``action_logs``
+*   Records proposed and executed actions by the system.
+*   Includes ``user_id``, ``action_type``, ``status``, ``params_snapshot``, and timestamps.
+
+#### Query Logs
+*   Table: ``queries``
+*   Stores user queries and LLM responses for history and potential future analysis.
+
+<Note>
+  For detailed table schemas, relationships, and RLS policies, refer to the SQL migration files located in the ``scripts/migrations/`` and ``supabase/migrations/`` directories of the Macru application repository.
+</Note>
 
 ## APIs and Integrations
 
-*   **Internal APIs**:
-    *   The frontend communicates with the backend Next.js API Routes for all dynamic operations, including:
-        *   Authentication requests.
-        *   Triggering data ingestion and synchronization for connectors.
-        *   Submitting queries to the LLM.
-        *   Managing user profile settings, memory items, etc.
-        *   Executing actions.
-*   **External API Integrations**:
-    *   **LLM APIs**: Google Gemini API (via `@google/generative-ai`), with the `llmRouter.ts` designed for easy extension to other LLM providers.
-    *   **Data Source APIs**:
-        *   Notion API (via `@notionhq/client`).
-        *   Google APIs (for Calendar and Gmail, via `googleapis`).
-        *   (Designed for future additions like Google Drive, Linear, Figma, etc.)
-    *   **Supabase APIs**: The application extensively uses Supabase client libraries (`@supabase/supabase-js`, `@supabase/ssr`) for interacting with Supabase Auth, Database (Postgres), and Storage.
+Macru's architecture relies on a set of internal and external APIs:
+
+#### Internal APIs
+*   The frontend Next.js application communicates with backend Next.js API Routes (in ``/app/api/``) for all dynamic operations. These include:
+    *   Authentication requests (login, signup, etc.).
+    *   Triggering data ingestion and synchronization for various connectors.
+    *   Submitting user queries to the LLM through the ``llmRouter``.
+    *   Managing user profile settings, memory items, and other user-specific data.
+    *   Proposing and executing actions via the Action Layer.
+
+#### External API Integrations
+*   **LLM APIs**: Primarily Google Gemini API (via ``@google/generative-ai``), with ``llmRouter.ts`` designed for easy extension to other providers (e.g., OpenAI, Anthropic).
+*   **Data Source APIs**:
+    *   Notion API (via ``@notionhq/client``).
+    *   Google APIs (for Calendar and Gmail, via ``googleapis``).
+    *   The system is designed to accommodate future integrations (e.g., Google Drive, Linear, Figma).
+*   **Supabase APIs**: The application extensively uses Supabase client libraries (``@supabase/supabase-js``, ``@supabase/ssr``) for all interactions with Supabase Auth, Database (Postgres), and Storage.
 
 ## Infrastructure Requirements
 
-*   **Hosting**: A platform for hosting the Next.js application (e.g., Vercel, which is used for the production deployment as per `devlog.txt`).
-*   **Supabase Project**: A Supabase project is essential, providing:
-    *   Authentication services.
+Running Macru effectively requires the following infrastructure components:
+
+*   **Hosting**: A platform for deploying the Next.js application (e.g., **Vercel**, which is used for the production deployment as per the `devlog.txt`).
+*   **Supabase Project**: A foundational Supabase project providing:
+    *   User Authentication services.
     *   PostgreSQL database with `pgvector` and `pgsodium` extensions enabled.
-    *   File storage.
-    *   Edge Functions (for background tasks).
-*   **API Keys & Credentials**: Valid API keys and OAuth credentials are required for:
-    *   The chosen LLM(s).
+    *   Secure File Storage.
+    *   Serverless Edge Functions (for background processing tasks).
+*   **API Keys & Credentials**: Valid API keys and OAuth credentials are essential for:
+    *   The selected Large Language Model(s).
     *   Each external data source Macru integrates with (Notion, Google services, etc.).
-    *   These are managed via environment variables (e.g., in `.env.local` or Vercel environment settings).
+    *   These are managed securely via environment variables (e.g., in ``.env.local`` for development or through the hosting provider's settings for production).
 
-## Project Structure Overview (Simplified)
+## Project Structure Overview
 
-The Macru application's codebase is organized as follows:
+<Tip>The Macru application's codebase is logically organized to promote modularity and maintainability. This structure is based on information from the Macru application's `README.md` and common Next.js project conventions.</Tip>
 
-*   `/app`: Contains Next.js App Router pages, layouts, and API route handlers.
-    *   `/api`: Backend API endpoints.
-    *   `/auth`: Authentication-related UI pages.
-    *   `/dashboard`: Protected user-facing dashboard pages.
-*   `/components`: Reusable UI components, many built using `shadcn/ui`.
-    *   `/forms`: Form-specific components.
-    *   `/layout`: Components defining the main page structure (Sidebar, Header).
-    *   `/ui`: Core `shadcn/ui` components and custom UI elements.
-*   `/lib`: Core application logic, services, and utilities.
-    *   `/connectors`: Logic for individual data source integrations.
-    *   `/context`: React Context providers (e.g., for authentication state).
-    *   `/services`: Business logic for various domains (Auth, Files, Documents, LLM, Memory, etc.).
-    *   `/supabase`: Supabase client initialization helpers.
-    *   `/types`: TypeScript type definitions for application entities and database schemas.
-    *   `/utils`: General utility functions.
-    *   `/validations`: Zod schemas for form and data validation.
-*   `/public`: Static assets like images and fonts.
-*   `/scripts/migrations`: SQL database migration files applied manually via Supabase Studio.
-*   `/supabase/functions`: Code for Supabase Edge Functions (e.g., `sync-notion-all-users`).
-*   `/supabase/migrations`: SQL migration files, potentially generated by Supabase CLI (though the primary workflow noted in PRD is manual application from `/scripts/migrations/`).
-*   `middleware.ts`: Next.js middleware, primarily for authentication checks.
-*   `devlog.txt`: A detailed development log.
-*   `PRD.txt`: The Product Requirements Document.
-
-*(This structure is based on information from the Macru application's `README.md` and common Next.js project organization.)* 
+*   ``/app``: Contains Next.js App Router pages, layouts, and API route handlers.
+    *   ``/api``: Backend API endpoints.
+    *   ``/auth``: Authentication-related UI pages (login, signup).
+    *   ``/dashboard``: Protected user-facing dashboard pages and features.
+*   ``/components``: Reusable UI components, many built using `shadcn/ui`.
+    *   ``/forms``: Form-specific components (e.g., profile form, auth forms).
+    *   ``/layout``: Components defining the main page structure (Sidebar, Header, User Dropdown).
+    *   ``/ui``: Core ``shadcn/ui`` components and custom UI elements (e.g., ChatInterface, FileUpload).
+*   ``/lib``: Core application logic, services, type definitions, and utilities.
+    *   ``/connectors``: Logic for individual data source integrations (Notion, Google Calendar, etc.).
+    *   ``/context``: React Context providers (e.g., for global authentication state).
+    *   ``/services``: Business logic for various domains (Auth, Files, Documents, LLM, Memory, etc.).
+    *   ``/supabase``: Supabase client initialization helpers.
+    *   ``/types``: TypeScript type definitions for application entities, API responses, and database schemas.
+    *   ``/utils``: General utility functions (e.g., date formatters, rate limiters).
+    *   ``/validations``: Zod schemas for robust form and data validation.
+*   ``/public``: Static assets like images (e.g., Macru logo) and fonts.
+*   ``/scripts/migrations``: Contains SQL database migration files, typically applied manually via Supabase Studio during development.
+*   ``/supabase/functions``: Source code for Supabase Edge Functions (e.g., ``sync-notion-all-users`` for background data sync).
+*   ``/supabase/migrations``: SQL migration files, potentially generated by Supabase CLI (though the PRD notes a manual application workflow from ``/scripts/migrations/`` is often used).
+*   ``middleware.ts``: Next.js middleware, primarily used for implementing authentication checks on protected routes.
+*   ``devlog.txt``: A detailed chronological log of development activities, features, and fixes.
+*   ``PRD.txt``: The Product Requirements Document, outlining the vision, features, and technical considerations for Macru. 

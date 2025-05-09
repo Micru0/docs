@@ -1,48 +1,66 @@
 ---
-title: "Persistent Memory Layer (MEM0)"
-description: "Discover Macru's personalized memory system for more context-aware interactions."
+title: "Persistent Memory Layer (MEM0) in Macru"
+description: "Discover Macru's personalized memory system (MEM0) for more context-aware, efficient, and tailored interactions."
+icon: "brain-arrow-right"
 ---
 
 # Persistent Memory Layer (MEM0)
 
-Macru features a persistent and personalized memory layer, often referred to as MEM0, designed to enhance the user experience by enabling the assistant to remember key information across conversations.
+Macru features a persistent and personalized memory layer, often referred to as **MEM0**, designed to significantly enhance your experience by enabling the assistant to remember key information across conversations. This leads to interactions that feel more natural, intelligent, and tailored to your specific needs.
 
 ## Purpose of the Memory Layer
 
-The primary goals of the memory layer are to:
+The primary goals of Macru's memory layer are to:
 
-*   **Improve Contextual Awareness**: Allow the LLM to recall user preferences, key facts shared in previous interactions, and other user-specific information.
-*   **Increase Efficiency**: Reduce the need for users to repeat information they've already provided.
-*   **Personalize Responses**: Lead to more tailored and relevant answers from the assistant.
+<CardGroup cols={3}>
+  <Card title="Improve Contextual Awareness" icon="thought-bubble">
+    Allows the LLM to recall user preferences, key facts shared in previous interactions, and other user-specific information, making conversations flow more naturally.
+  </Card>
+  <Card title="Increase Efficiency" icon="bolt">
+    Reduces the need for users to repeat information they've already provided, saving time and effort.
+  </Card>
+  <Card title="Personalize Responses" icon="user-check">
+    Leads to more tailored and relevant answers from the assistant, making it feel like a truly personal knowledge partner.
+  </Card>
+</CardGroup>
 
-## How It Works
+## How MEM0 Works
 
-1.  **Storage**:
-    *   User-specific memories are stored securely in a dedicated `memory_items` table in the Supabase Postgres database.
-    *   Strict Row-Level Security (RLS) policies ensure that each user can only access their own memories.
-    *   The system is designed with future encryption for sensitive memory data in mind.
-2.  **Memory Creation**:
-    *   Memories can be created implicitly. For example, the system might have basic heuristics to identify and save facts when a user says something like "Remember that..." or "I like...". (Note: Some early heuristics noted in `devlog.txt` `[2025-04-30] Auth, Memory, and LLM Action Fixes` were removed or refined to prevent incorrect saving).
-    *   Future enhancements could involve more sophisticated LLM-based automatic memory extraction.
-3.  **Memory Retrieval**:
-    *   When a user submits a query, relevant memory items are dynamically fetched from the database.
-    *   This retrieval can be based on keyword matching or other relevance algorithms (e.g., semantic search on memories if implemented).
+The MEM0 system operates through several coordinated processes:
+
+1.  **Secure Storage**:
+    *   User-specific memories are stored securely in a dedicated ``memory_items`` table within your Supabase Postgres database.
+    *   **Strict Row-Level Security (RLS)** policies are enforced to ensure that each user can only access their own memories, guaranteeing privacy.
+    *   The system is designed with **future encryption for sensitive memory data** in mind, adding an extra layer of protection.
+2.  **Intelligent Memory Creation**:
+    *   Memories can be created implicitly. For example, the system might have basic heuristics to identify and save facts when a user says something like "Remember that..." or "I like...".
+    *   <Note>Some early heuristics, as noted in `devlog.txt` (``[2025-04-30] Auth, Memory, and LLM Action Fixes``), were removed or refined to prevent incorrect saving of information.</Note>
+    *   Future enhancements will likely involve more sophisticated LLM-based automatic memory extraction for greater accuracy and relevance.
+3.  **Dynamic Memory Retrieval**:
+    *   When you submit a query, relevant memory items are dynamically fetched from the database.
+    *   This retrieval can be based on keyword matching or, with future enhancements, more advanced relevance algorithms (e.g., semantic search on memories).
 4.  **Context Augmentation**:
-    *   The retrieved memories are then added to the context provided to the LLM along with the current query and any relevant data chunks.
-5.  **Optional Feature**:
-    *   The memory layer functionality can be made optional via an environment variable (e.g., `ENABLE_MEMORY_LAYER`).
+    *   The retrieved memories are then seamlessly added to the context provided to the LLM, alongside your current query and any relevant data chunks from your knowledge base.
+5.  **Optional Feature Control**:
+    *   The memory layer functionality can be made optional via an environment variable (e.g., ``ENABLE_MEMORY_LAYER``), giving you control over its operation.
 
-*The implementation of the memory layer, including database schema, client and server-side services, and initial heuristics, is detailed in the `devlog.txt` entry `[2025-04-24] Memory Layer Implementation (Task 7)`.*
+<Note>
+  The core implementation of the memory layer, including its database schema, client and server-side services (``lib/services/memory-service.ts``, ``lib/services/memory-service-server.ts``), and initial heuristics, is detailed in the `devlog.txt` entry: `[2025-04-24] Memory Layer Implementation (Task 7)`.
+</Note>
 
-## User Interaction
+## User Interaction with MEM0
 
-*   **Viewing Memories**: Users can typically view their stored (non-sensitive) memories via a `MemoryViewer` component (`components/ui/memory-viewer.tsx`), often accessible from their profile or settings page (`app/dashboard/profile/page.tsx`).
-*   **Managing Memories**: The viewer may also allow users to delete memories. Editing capabilities could be a future enhancement.
+Macru provides transparency and control over your personalized memory:
 
-## Future Considerations
+*   **Viewing Memories**: You can typically view your stored (non-sensitive) memories via a ``MemoryViewer`` component (located at ``components/ui/memory-viewer.tsx``). This is often accessible from your profile or settings page (e.g., ``app/dashboard/profile/page.tsx``).
+*   **Managing Memories**: The viewer may also allow you to delete memories you no longer deem relevant. Editing capabilities for memories are a potential future enhancement.
 
-*   More robust automatic memory extraction using LLMs.
-*   Memory editing capabilities in the UI.
-*   Encryption for all sensitive memory data.
-*   Advanced memory retrieval algorithms (e.g., vector search on memories, better keyword analysis, summarization of memories).
-*   User configuration options for memory behavior (e.g., auto-save toggles). 
+## Future Considerations for MEM0
+
+The MEM0 layer is designed for continuous improvement. Potential future enhancements include:
+
+*   More robust and nuanced automatic memory extraction using advanced LLM capabilities.
+*   The ability for users to directly edit their stored memories through the UI.
+*   Comprehensive encryption for all sensitive memory data, ensuring maximum privacy.
+*   Advanced memory retrieval algorithms, possibly incorporating vector search on memories, improved keyword analysis, and even summarization of related memory clusters.
+*   User-configurable options for memory behavior, such as toggles for auto-saving preferences or specific types of information. 

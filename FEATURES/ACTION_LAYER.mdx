@@ -1,46 +1,55 @@
 ---
-title: "Action Execution Layer"
-description: "Learn how Macru can propose and execute actions on integrated platforms."
+title: "Action Execution Layer in Macru"
+description: "Learn how Macru empowers you to delegate tasks and streamline workflows by proposing and executing actions on integrated platforms."
+icon: "person-running-fast"
 ---
 
 # Action Execution Layer
 
-Beyond providing information, Macru incorporates an Action Execution Layer that allows the Large Language Model (LLM) to propose and, with user confirmation, execute actions on integrated platforms. This extends the assistant's capabilities from purely informational to actively helpful in completing tasks.
+Beyond simply providing information, Macru incorporates a powerful **Action Execution Layer**. This allows the Large Language Model (LLM) to understand your intent to perform tasks, propose relevant actions on integrated platforms, and, with your explicit confirmation, execute them. This extends Macru's capabilities from a purely informational assistant to an actively helpful partner in completing your work.
 
-## Purpose
+## Purpose of the Action Layer
 
-The Action Execution Layer aims to:
-*   Enable users to delegate tasks to Macru (e.g., "Schedule a Google Calendar event," "Create a Notion page," "Draft a Gmail message" - *note: specific actions depend on implemented connectors and LLM tooling*).
-*   Streamline workflows by allowing actions directly from the chat interface.
+The Action Execution Layer is designed to:
 
-## How It Works
+*   **Enable Task Delegation**: Allow you to delegate tasks directly to Macru through natural language (e.g., "Schedule a Google Calendar event with the team about Project Phoenix," "Create a new Notion page for Q3 planning," "Draft a Gmail message to Alice about the budget" - *note: specific actions available depend on implemented connectors and LLM tooling*).
+*   **Streamline Workflows**: Allow actions to be initiated and completed directly from the chat interface, reducing context switching and manual effort.
+
+## How It Works: From Intent to Execution
+
+The Action Layer follows a structured process:
 
 1.  **Intent Recognition & Parameter Extraction**:
-    *   The LLM analyzes the user's request to understand the intent to perform an action.
-    *   It identifies and extracts the necessary parameters for that action (e.g., for scheduling a meeting: event title, attendees, date, time).
-    *   The LLM prompt is engineered to guide it in this process, including using the user's default timezone if set (see `devlog.txt` `[2025-05-05] User Timezone Preference` and `[2025-05-05] LLM Prompt Refinement for Action Scheduling`).
+    *   The LLM analyzes your request to discern the underlying intent to perform an action.
+    *   It intelligently identifies and extracts the necessary parameters for that action (e.g., for scheduling a meeting: event title, attendees, date, time; for creating a page: title, parent database/page).
+    *   The LLM prompt is carefully engineered to guide this process, including utilizing your default timezone if set (see `devlog.txt`: `[2025-05-05] User Timezone Preference` and `[2025-05-05] LLM Prompt Refinement for Action Scheduling`).
 2.  **Action Proposal**:
-    *   The LLM proposes the action along with the understood parameters. This is typically displayed in the user interface.
-    *   The `lib/llmRouter.ts` defines available tools/functions (actions) that the LLM can propose (e.g., `googleCalendar.createEvent` as noted in `devlog.txt` `[2025-04-30] Auth, Memory, and LLM Action Fixes`).
+    *   The LLM proposes the action along with the understood parameters, typically displaying this clearly in the user interface for your review.
+    *   The ``lib/llmRouter.ts`` defines the available tools/functions (actions) that the LLM can propose (e.g., ``googleCalendar.createEvent`` as noted in `devlog.txt`: `[2025-04-30] Auth, Memory, and LLM Action Fixes`).
 3.  **User Confirmation**:
-    *   **Crucially, user confirmation is typically mandatory by default.** Macru will present the proposed action and parameters, requiring the user to explicitly approve it before execution.
-    *   The UI for action confirmation is integrated into the chat flow (`components/ui/chat-interface.tsx`).
-    *   While settings might allow disabling confirmation for testing or specific low-risk actions in the future, the default is security-first.
-4.  **Secure Execution**:
-    *   Once confirmed, the action request is routed through a secure backend endpoint (e.g., `app/api/action/route.ts`).
-    *   This endpoint performs authentication checks to ensure the user is authorized.
-5.  **Action Logging**:
-    *   All action attempts (proposed, confirmed, executed, failed, or rate-limited) are logged in the `action_logs` table in Supabase for auditing purposes.
-    *   Users can view their action history via an `AuditTrailViewer` component (`components/ui/audit-trail-viewer.tsx`) in their settings.
-6.  **Rate Limiting**:
-    *   The action execution endpoint (`app/api/action/route.ts`) includes rate limiting per user to prevent abuse and ensure system stability.
+    <Warning icon="shield-exclamation">
+      **User Confirmation is Paramount**: By default, Macru **requires your explicit confirmation** before any action is executed. The proposed action and its parameters will be presented to you, and you must approve it.
+    </Warning>
+    *   The UI for action confirmation is seamlessly integrated into the chat flow (via ``components/ui/chat-interface.tsx``).
+    *   While future settings might allow for disabling confirmation for specific, very low-risk, or user-configured actions, the default and overriding principle is **security-first and user-in-control**.
+4.  **Secure Execution via Backend**:
+    *   Once you confirm an action, the request is securely routed through a dedicated backend endpoint (e.g., ``app/api/action/route.ts``).
+    *   This endpoint performs rigorous authentication checks to ensure the request is legitimate and you are authorized to perform the action.
+5.  **Comprehensive Action Logging**:
+    *   All action attempts—whether proposed, confirmed, executed successfully, failed, or blocked by rate limits—are meticulously logged in the ``action_logs`` table in Supabase.
+    *   This provides a full audit trail. You can typically view your action history via an ``AuditTrailViewer`` component (``components/ui/audit-trail-viewer.tsx``) in your Macru settings.
+6.  **Rate Limiting for Stability**:
+    *   The action execution endpoint (``app/api/action/route.ts``) incorporates rate limiting on a per-user basis. This helps prevent abuse and ensures the stability and responsiveness of the system for all users.
 
-*The initial setup of the Action Layer, including risk definitions, the ActionLogger, rate limiting, and the audit trail UI, is detailed in `devlog.txt` entry `[2025-04-29] Action Layer Configuration & Security (Task 9.5)`.*
-*Fixes and refinements to the action flow, particularly for Google Calendar, are noted in `devlog.txt` `[2025-05-04] LLM Response & Action Handling Refinements`.*
+<Note>
+  The foundational setup of the Action Layer, including risk definitions, the ActionLogger, rate limiting mechanisms, and the audit trail UI, is detailed in the `devlog.txt` entry: `[2025-04-29] Action Layer Configuration & Security (Task 9.5)`. Subsequent fixes and refinements, particularly for Google Calendar actions, are noted in `[2025-05-04] LLM Response & Action Handling Refinements`.
+</Note>
 
-## Security and Configuration
+## Security and Configuration Focus
 
-*   **Confirmation Levels**: Future development may include tiered confirmation levels based on the risk associated with an action (defined in `lib/types/actions.ts` `ACTION_RISK_MAP` and potentially linked to `profiles.action_confirmation_level`).
-*   **API Keys & Permissions**: Actions that interact with external services rely on the secure storage and use of API tokens/credentials obtained through the respective data connectors (e.g., Google Calendar OAuth tokens).
+Security and user control are central to the Action Layer's design:
 
-This feature is designed to be powerful yet secure, always prioritizing user control and data safety. 
+*   **Confirmation Levels**: Future development may introduce tiered confirmation levels based on the assessed risk of an action (potentially defined in ``lib/types/actions.ts`` using ``ACTION_RISK_MAP`` and linked to a user profile setting like ``profiles.action_confirmation_level``).
+*   **API Keys & Permissions**: Actions interacting with external services (like Google Calendar or Notion) rely on the secure storage and careful use of API tokens and credentials obtained through their respective data connector authentication flows.
+
+Macru's Action Execution Layer is designed to be a powerful productivity enhancer, always operating with your security and explicit consent as the highest priorities. 

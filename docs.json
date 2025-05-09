@@ -15,6 +15,7 @@
         "groups": [
           {
             "group": "Get Started",
+            "icon": "rocket",
             "pages": [
               "index",
               "GETTING_STARTED"
@@ -22,6 +23,7 @@
           },
           {
             "group": "Macru Documentation",
+            "icon": "book-open-cover",
             "pages": [
               "ARCHITECTURE",
               "FEATURES/DATA_INGESTION",
@@ -37,21 +39,11 @@
           },
           {
             "group": "Connectors",
+            "icon": "plug",
             "pages": [
               "CONNECTORS/NOTION_CONNECTOR",
               "CONNECTORS/GOOGLE_CALENDAR_CONNECTOR",
               "CONNECTORS/GMAIL_CONNECTOR"
-            ]
-          },
-          {
-            "group": "Essentials",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/reusable-snippets"
             ]
           }
         ]
@@ -80,26 +72,26 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "Macru Overview",
+          "href": "/index",
+          "icon": "house"
         },
         {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
+          "anchor": "Key Features",
+          "href": "/FEATURES/DATA_INGESTION",
+          "icon": "star"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Get Support",
+          "href": "mailto:hi@mintlify.com",
+          "icon": "envelope"
         }
       ]
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/macru_logo.png",
+    "dark": "/logo/macru_logo.png"
   },
   "navbar": {
     "links": [

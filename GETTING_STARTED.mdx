@@ -1,22 +1,22 @@
 ---
 title: "Getting Started with Macru"
-description: "Learn how to set up and run your Macru application."
+description: "Set up your local Macru development environment with these step-by-step instructions."
 ---
 
 # Getting Started with Macru
 
 This guide will walk you through the steps to get your Macru application up and running on your local machine.
 
-## Prerequisites
-
-Before you begin, ensure you have the following installed:
-*   Node.js (version 18.x or later recommended)
-*   npm, yarn, or pnpm (package manager)
-*   Access to a Supabase project
+<Note>
+  **Before you begin, ensure you have the following installed:**
+  *   Node.js (version 18.x or later recommended)
+  *   A package manager: npm, yarn, or pnpm
+  *   Access to a [Supabase project](https://supabase.com/)
+</Note>
 
 ## 1. Clone the Repository
 
-First, clone the Macru application repository to your local machine:
+First, clone the Macru application repository to your local machine and navigate into the project directory:
 
 ```bash
 git clone https://github.com/Spa42/macru.git
@@ -25,7 +25,7 @@ cd macru
 
 ## 2. Install Dependencies
 
-Navigate into the cloned project directory and install the necessary dependencies using your preferred package manager:
+Install the necessary dependencies using your preferred package manager:
 
 ```bash
 npm install
@@ -39,31 +39,34 @@ pnpm install
 
 Macru relies on Supabase for authentication, database storage, and file storage.
 
-*   **Create a Supabase Project**: If you haven't already, create a new project at [supabase.com](https://supabase.com/).
+*   **Create a Supabase Project**: If you haven't already, create a new project on [supabase.com](https://supabase.com/).
 *   **Database Configuration**:
-    *   In your Supabase project dashboard, navigate to **Database** > **Extensions**.
+    *   In your Supabase project dashboard, navigate to **Project Settings** (Gear icon) > **Database** > **Extensions**.
     *   Enable the `pgvector` extension (for vector similarity search).
-    *   Enable the `pgsodium` extension (for future token encryption, if not already enabled).
-    *   Go to the **SQL Editor**. Run *all* SQL migration scripts located in the Macru project's `scripts/migrations/` and `supabase/migrations/` directories. **Execute them in numerical order** to correctly set up tables (like `profiles`, `documents`, `chunks`, `embeddings`, `memory_items`, `connector_tokens`, `action_logs`), functions, triggers, and Row-Level Security (RLS) policies.
+    *   Enable the `pgsodium` extension (used for secure credential storage, if not already enabled).
+    *   Navigate to the **SQL Editor** (Database icon > SQL Editor).
+    <Warning>
+      Run **all** SQL migration scripts located in the Macru project's `/scripts/migrations/` and `/supabase/migrations/` directories. **Execute them in numerical/chronological order** to correctly set up tables, functions, triggers, and Row-Level Security (RLS) policies.
+    </Warning>
 *   **Storage Setup**:
-    *   Navigate to **Storage** in your Supabase dashboard.
-    *   Create the required buckets (e.g., `documents`, `avatars`). Refer to the Macru application's source code or migration scripts for exact names and policies if needed.
+    *   Navigate to **Storage** (Bucket icon) in your Supabase dashboard.
+    *   Create the required buckets (e.g., `documents`, `avatars`). Refer to the Macru application's source code or existing migration scripts for exact bucket names and access policies if needed.
 *   **Authentication Setup**:
-    *   Navigate to **Authentication** > **Configuration** (or Providers).
-    *   Ensure Email authentication is enabled.
-    *   For local development, you might want to temporarily disable "Confirm email" to streamline testing.
-    *   Under **URL Configuration** (or **Auth Settings** > **General**):
+    *   Navigate to **Authentication** (Users icon) > **Configuration** (in the sidebar).
+    *   Under **Providers**, ensure Email authentication is enabled.
+    *   For local development, you might want to temporarily disable **Confirm email** under **Auth Settings** > **General** to streamline testing.
+    *   Under **Auth Settings** > **General** > **URL Configuration**:
         *   Set your **Site URL** (e.g., `http://localhost:3000` for local development).
-        *   Add **Redirect URLs**: `http://localhost:3000/auth/callback`.
+        *   Add **Redirect URLs**: `http://localhost:3000/auth/callback` (and any other callback URLs used by connectors like Notion or Google).
 
 ## 4. Configure Environment Variables
 
-Macru requires several environment variables to connect to Supabase and other services.
+<Tip>Macru requires several environment variables. Create a file named `.env.local` in the root of your Macru project directory (`/Users/micru/macru/macru/`).</Tip>
 
-*   In the root of your Macru project directory (`/Users/micru/macru/macru/`), create a file named `.env.local`.
-*   Copy the following structure into `.env.local` and populate it with your actual credentials and keys from your Supabase project and other services:
+Copy the following structure into `.env.local` and populate it with your actual credentials and keys:
 
-```env
+<CodeGroup>
+```env .env.local
 # Supabase Core
 NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
@@ -82,21 +85,31 @@ NOTION_CLIENT_ID=YOUR_NOTION_INTEGRATION_CLIENT_ID
 NOTION_CLIENT_SECRET=YOUR_NOTION_INTEGRATION_CLIENT_SECRET
 NOTION_REDIRECT_URI=http://localhost:3000/api/connectors/notion/auth/callback # Ensure this matches your Notion Integration settings
 
+# Google Calendar & Gmail Connectors (If using)
+# Ensure GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and relevant redirect URIs are set up in Google Cloud Console
+# GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
+# GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
+# GOOGLE_REDIRECT_URI_CALENDAR=http://localhost:3000/api/connectors/google-calendar/auth/callback
+# GOOGLE_REDIRECT_URI_GMAIL=http://localhost:3000/api/connectors/gmail/auth/callback
+
 # Internal Sync Trigger (For background sync, e.g., Notion Supabase Function)
 INTERNAL_API_SECRET=A_STRONG_RANDOM_SECRET_SHARED_WITH_SUPABASE_FUNCTIONS
 APP_URL=http://localhost:3000 # Use production URL when deployed
 
 # Add other necessary variables for different connectors or services
 ```
+</CodeGroup>
 
-**Important**:
-*   Replace placeholder values like `YOUR_SUPABASE_PROJECT_URL` with your actual credentials.
-*   The `SUPABASE_SERVICE_ROLE_KEY` is highly sensitive and should only be used in backend environments.
-*   For production deployments, ensure all these variables are securely set in your hosting provider's environment settings, and update `NOTION_REDIRECT_URI` and `APP_URL` to your production URLs.
+<Warning>
+  **Important Notes:**
+  *   Replace all placeholder values (e.g., `YOUR_SUPABASE_PROJECT_URL`) with your actual credentials.
+  *   The `SUPABASE_SERVICE_ROLE_KEY` is highly sensitive and should **never** be exposed in client-side code. It's for backend use only.
+  *   For production deployments, ensure all these variables are securely set in your hosting provider's environment settings. Update URLs like `NOTION_REDIRECT_URI`, `GOOGLE_REDIRECT_URI_*`, and `APP_URL` to your production URLs.
+</Warning>
 
 ## 5. Run the Development Server
 
-Once the dependencies are installed and environment variables are configured, you can start the Macru development server:
+Once dependencies are installed and environment variables are configured, start the Macru development server:
 
 ```bash
 npm run dev
@@ -108,4 +121,4 @@ pnpm dev
 
 ## 6. Access Macru
 
-Open your web browser and navigate to [http://localhost:3000](http://localhost:3000). You should see the Macru application. 
+Open your web browser and navigate to [http://localhost:3000](http://localhost:3000). You should now be able to access and use your local Macru application. 

@@ -1,35 +1,43 @@
 ---
-title: "Authentication in Macru"
-description: "Learn how Macru handles user authentication securely."
+title: "Authentication in Macru: Secure User Access"
+description: "Learn how Macru handles user authentication securely using Supabase Auth, including email/password, verification, and session management."
+icon: "user-shield"
 ---
 
 # Authentication in Macru
 
-Macru implements a robust authentication system to ensure that user data is secure and accessible only by authorized individuals. The system handles user sign-up, login, email verification, password resets, and session management.
+Macru implements a robust and secure authentication system to ensure that your data is protected and accessible only by you. The system comprehensively handles user sign-up, login, email verification, password resets, and session management, providing a seamless and safe user experience.
 
 ## Core Technology: Supabase Auth
 
-Macru utilizes **Supabase Auth** as its primary authentication provider. Supabase Auth offers a comprehensive suite of tools for managing users and securing access.
+Macru leverages **Supabase Auth** as its primary authentication provider. Supabase Auth offers a rich suite of tools for managing users and securing access to your application. Key features utilized include:
 
-*   **Email/Password Authentication**: Users can sign up and log in using their email and a password.
-*   **Email Verification**: The system includes an email verification flow to confirm user identity during sign-up. Users receive a verification link, and their account is fully activated upon clicking it.
-*   **Password Reset**: Users who forget their password can request a password reset via email.
-*   **Session Management**: Supabase Auth handles user sessions, ensuring that users remain logged in across browser sessions and that sessions are managed securely. Macru leverages `@supabase/ssr` helpers for consistent cookie handling and session synchronization between client-side actions and server-side checks (like middleware and API routes).
+*   **Email/Password Authentication**: Users can securely sign up and log in using their email address and a unique password.
+*   **Email Verification Flow**: To confirm user identity and prevent unauthorized account creation, the system includes a mandatory email verification step during sign-up. Users receive a verification link, and their account is fully activated only upon successful verification.
+*   **Password Reset Functionality**: Users who forget their password can easily and securely request a password reset link via their registered email address.
+*   **Robust Session Management**: Supabase Auth expertly handles user sessions, ensuring users remain logged in across browser sessions where appropriate. Macru specifically utilizes ``@supabase/ssr`` helpers for consistent and secure cookie handling, which is crucial for session synchronization between client-side actions and server-side checks (such as in middleware and API routes).
 
 ## Key Implementation Details
 
-*   **AuthContext (`lib/context/auth-context.tsx`)**: A React Context provider is used to make authentication state (e.g., current user, loading status) and auth methods (signIn, signUp, signOut, resetPassword) globally available throughout the client-side application.
-*   **AuthService (`lib/services/auth-service.ts`)**: This service encapsulates Supabase authentication API calls, providing a clean interface for auth-related operations.
-*   **Middleware (`middleware.ts`)**: Next.js middleware is used to protect routes. It checks the user's authentication status and redirects unauthenticated users to the login page or authenticated users away from public auth pages (like login/signup if already logged in).
-*   **Form Validation (`lib/validations/auth.ts`)**: User input for authentication forms (login, signup, reset password) is validated using Zod schemas to ensure data integrity.
-*   **UI Components (`app/components/auth/`)**: Dedicated React components are used for Login, Signup, and Reset Password forms, built with `shadcn/ui` for a consistent look and feel.
-*   **API Route Authentication**: Server-side API routes also leverage `@supabase/ssr`'s `createServerClient` with cookie handling to verify user sessions for protected backend operations.
+Several components and services work together to deliver Macru's authentication capabilities:
 
-*Initial implementation of the authentication system is detailed in `devlog.txt` entry `[2025-03-27] Authentication System Implementation`.*
-*Fixes and enhancements to the email verification flow and session synchronization are covered in `[2025-04-25] Authentication Email Verification Fix` and `[2025-04-26] Authentication Flow and Component Fixes`.*
-*Troubleshooting API route authentication (`AuthSessionMissingError`) is noted in `[2025-04-28] Fix Supabase API Route Authentication`.*
+*   **AuthContext (``lib/context/auth-context.tsx``)**: A React Context provider that makes the global authentication state (e.g., current user object, loading status) and essential authentication methods (``signIn``, ``signUp``, ``signOut``, ``resetPassword``) readily available throughout the client-side of the application.
+*   **AuthService (``lib/services/auth-service.ts``)**: This service acts as a clean abstraction layer, encapsulating all Supabase authentication API calls and providing a well-defined interface for auth-related operations within Macru.
+*   **Middleware (``middleware.ts``)**: Next.js middleware is employed to protect routes effectively. It inspects the user's authentication status on incoming requests and handles redirections: unauthenticated users are guided to the login page, while already authenticated users might be redirected away from public authentication pages (like login/signup forms).
+*   **Form Validation (``lib/validations/auth.ts``)**: User input for all authentication forms (login, signup, reset password) is rigorously validated using **Zod** schemas. This ensures data integrity and helps prevent common input-related errors or vulnerabilities.
+*   **UI Components (``app/components/auth/``)**: Dedicated React components are utilized for the Login, Signup, and Reset Password forms. These components are built with `shadcn/ui` to ensure a consistent, accessible, and modern look and feel.
+*   **API Route Authentication**: Server-side API routes in Macru also leverage ``@supabase/ssr``'s ``createServerClient`` utility, incorporating proper cookie handling to securely verify user sessions for any protected backend operations.
+
+<Note>
+  **Development Journey & Fixes (from `devlog.txt`):**
+  *   Initial system implementation: `[2025-03-27] Authentication System Implementation`.
+  *   Email verification and session sync enhancements: `[2025-04-25] Authentication Email Verification Fix` and `[2025-04-26] Authentication Flow and Component Fixes`.
+  *   Troubleshooting API route auth (`AuthSessionMissingError`): `[2025-04-28] Fix Supabase API Route Authentication`.
+</Note>
 
 ## Security Considerations
 
-*   **Row-Level Security (RLS)**: While Supabase Auth handles user identity, Supabase's RLS policies on database tables ensure that authenticated users can only access data they are permitted to see (typically their own).
-*   **Secure API Key Handling**: API keys for Supabase (like `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`) are managed via environment variables. 
+Beyond the core authentication mechanisms, Macru incorporates further security measures:
+
+*   **Row-Level Security (RLS)**: While Supabase Auth handles user identity, Supabase's powerful RLS policies are applied to database tables. This ensures that even if authenticated, users can only access and modify data they are explicitly permitted to see (which is almost always exclusively their own data).
+*   **Secure API Key Handling**: API keys required for Supabase integration (such as ``NEXT_PUBLIC_SUPABASE_ANON_KEY`` for the client-side and the highly sensitive ``SUPABASE_SERVICE_ROLE_KEY`` for backend operations) are managed securely via environment variables, adhering to best practices for credential management. 
