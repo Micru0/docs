@@ -41,9 +41,9 @@
             "group": "Connectors",
             "icon": "plug",
             "pages": [
-              {"page": "CONNECTORS/NOTION_CONNECTOR", "icon": "file-lines"},
-              {"page": "CONNECTORS/GOOGLE_CALENDAR_CONNECTOR", "icon": "calendar-days"},
-              {"page": "CONNECTORS/GMAIL_CONNECTOR", "icon": "envelope-open-text"}
+              "CONNECTORS/NOTION_CONNECTOR",
+              "CONNECTORS/GOOGLE_CALENDAR_CONNECTOR",
+              "CONNECTORS/GMAIL_CONNECTOR"
             ]
           }
         ]
@@ -65,8 +65,8 @@
     }
   },
   "logo": {
-    "light": "/images/logo2.png",
-    "dark": "/images/logo2.png"
+    "light": "/images/macrulogo.png",
+    "dark": "/images/macrulogo.png"
   },
   "navbar": {
     "links": []
