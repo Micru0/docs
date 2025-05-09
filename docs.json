@@ -20,10 +20,50 @@
               "index",
               {"page": "GETTING_STARTED", "icon": "rocket"}
             ]
+          },
+          {
+            "group": "Macru Documentation",
+            "icon": "book-open-cover",
+            "pages": [
+              {"page": "ARCHITECTURE", "icon": "network-wired"},
+              {"page": "FEATURES/DATA_INGESTION", "icon": "database-arrow-down"},
+              {"page": "FEATURES/QUERYING_DATA", "icon": "magnifying-glass-waveform"},
+              {"page": "FEATURES/MULTI_LLM_ARCHITECTURE", "icon": "arrows-split-up-and-left"},
+              {"page": "FEATURES/MEMORY_LAYER", "icon": "brain-arrow-right"},
+              {"page": "FEATURES/ACTION_LAYER", "icon": "person-running-fast"},
+              {"page": "FEATURES/AUTHENTICATION", "icon": "user-shield"},
+              {"page": "FEATURES/USER_INTERFACE", "icon": "computer-mouse-scrollwheel"},
+              {"page": "DEVELOPMENT_GUIDE", "icon": "code-branch"},
+              {"page": "TROUBLESHOOTING", "icon": "wrench"},
+              {"page": "Dochistory", "icon": "scroll-old"}
+            ]
+          },
+          {
+            "group": "Connectors",
+            "icon": "plug-circle-bolt",
+            "pages": [
+              {"page": "CONNECTORS/NOTION_CONNECTOR", "icon": "file-lines"},
+              {"page": "CONNECTORS/GOOGLE_CALENDAR_CONNECTOR", "icon": "calendar-days"},
+              {"page": "CONNECTORS/GMAIL_CONNECTOR", "icon": "envelope-open-text"}
+            ]
           }
         ]
       }
-    ]
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Macru Overview",
+          "href": "https://github.com/Spa42/macru",
+          "icon": "house"
+        },
+        {
+          "anchor": "Key Features",
+          "href": "https://github.com/Spa42/docs/tree/main/FEATURES",
+          "icon": "star"
+        }
+      ]
+    }
   },
   "logo": {
     "light": "/images/logo2.png",
