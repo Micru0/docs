@@ -73,12 +73,12 @@
       "anchors": [
         {
           "anchor": "Macru Overview",
-          "href": "/index",
+          "href": "https://github.com/Spa42/macru",
           "icon": "house"
         },
         {
           "anchor": "Key Features",
-          "href": "/FEATURES/DATA_INGESTION",
+          "href": "https://github.com/Spa42/docs/tree/main/FEATURES",
           "icon": "star"
         },
         {
