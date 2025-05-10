@@ -1,7 +1,21 @@
 /* Custom styles for Macru Documentation */
 
-/* Increase the size of the navbar logo */
-nav[role="banner"] a[href="/"] img { /* Targeting the logo image within the main navbar link */
-  height: 50px !important; /* Adjust size as needed. Using !important to ensure override. */
-  width: auto !important;   /* Maintain aspect ratio */
+/* --- Attempt 1: Original Selector --- */
+nav[role="banner"] a[href="/"] img {
+  height: 50px !important;
+  width: auto !important;
+}
+
+/* --- Attempt 2: More direct logo class on image --- */
+img.logo, .logo img, .navbar-brand img, .nav-logo img {
+  height: 50px !important;
+  width: auto !important;
+  border: 1px solid red !important; /* Added red border for visual debugging */
+}
+
+/* --- Attempt 3: Direct link around logo --- */
+a.logo-link img {
+  height: 50px !important;
+  width: auto !important;
+  border: 1px solid blue !important; /* Added blue border for visual debugging */
 } 
