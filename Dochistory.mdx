@@ -111,4 +111,72 @@ The issue was resolved by carefully restructuring `docs.json` as follows:
 This combination of using `navigation.groups` for the main content structure, `navigation.global.anchors` for top-level sidebar links, and ensuring `pages` arrays contained only strings, successfully restored the sidebar navigation.
 
 Additionally, during this troubleshooting phase, the documentation theme colors were updated:
-*   The primary, light, and dark green colors were changed to cyan shades (`#00BCD4`, `#4DD0E1`, and `#0097A7` respectively) in `docs.json`. 
+*   The primary, light, and dark green colors were changed to cyan shades (`#00BCD4`, `#4DD0E1`, and `#0097A7` respectively) in `docs.json`.
+
+## Operational Knowledge & Best Practices for Macru Documentation (Mintlify) - Updated
+
+This section consolidates critical operational knowledge, troubleshooting steps, and best practices derived from experience and official Mintlify documentation for maintaining the Macru documentation.
+
+- **Core Sidebar Navigation Structure (`docs.json`):**
+  - The primary sidebar navigation for content should be configured using `navigation.groups`. Each group contains a `group` name (string) and a `pages` array.
+  - For global/top-level links in the sidebar (e.g., external links, or high-level internal links not part of main content groups), use `navigation.global.anchors`.
+    - The structure is `navigation: { global: { anchors: [ ... ] }, groups: [ ... ] }`.
+  - **Crucially, `pages` entries within `navigation.groups` in `docs.json` MUST be strings (filenames only, e.g., `"GETTING_STARTED"`).** Do NOT use objects with `icon` or `page` keys for individual pages within `docs.json`'s `pages` array, as this has previously broken the sidebar.
+  - Group-level icons (defined within the group object in `docs.json`) are supported and recommended for visual clarity (e.g., `{"group": "My Group", "icon": "fa-solid fa-book", "pages": [...]}`).
+
+- **Page-Specific Icons:**
+  - To add icons to individual pages in the sidebar, define them in the **frontmatter of the corresponding `.mdx` file**, not in `docs.json`.
+  - Example (`my-page.mdx`):
+    ```mdx
+    ---
+    title: "My Page Title"
+    icon: "lucide-star" # Or a Font Awesome icon like "fa-solid fa-star"
+    ---
+    ```
+  - This method allows for page-specific icons without altering the string-based `pages` array in `docs.json`.
+
+- **Understanding Mintlify Schema & Avoiding Disappearing Sidebars:**
+  - Mintlify's `docs.json` schema for `navigation` can be strict. Past errors indicated a requirement for a top-level key like `tabs`, `anchors`, `dropdowns`, `versions`, or `languages` directly under `navigation`.
+  - The combination of `navigation.groups` (for main content) AND `navigation.global.anchors` (for global links) appears to satisfy this schema requirement and has been proven to restore a functional sidebar.
+  - If the sidebar disappears or navigation fails, the first step is to verify that `docs.json` adheres to the structure:
+    ```json
+    {
+      // ... other docs.json content (name, logo, colors, etc.)
+      "navigation": {
+        "global": {
+          "anchors": [
+            // { "anchor": "Global Link", "icon": "...", "href": "..." }
+          ]
+        },
+        "groups": [
+          // { "group": "Group Name", "icon": "...", "pages": ["page1", "page2"] }
+        ]
+      }
+      // ... other docs.json content (footerSocials, etc.)
+    }
+    ```
+  - Ensure all `pages` entries under `groups` are simple strings.
+  - Always document any new schema validation errors and their resolutions in this file (`Dochistory.mdx`). Mintlify schema and features may evolve; always consult the latest official Mintlify documentation if new or persistent issues arise, and cross-reference with the known working configurations documented here.
+
+- **Theme and Branding:**
+  - Theme colors can be changed in `docs.json` under the `colors` key. Use hexadecimal color codes for `primary`, `light`, and `dark`.
+  - Logo and favicon paths should be updated in `docs.json` as needed for branding.
+
+- **Content & Structure:**
+  - Use only `.mdx` files for documentation content.
+  - Use Mintlify components (`<Card>`, `<Note>`, `<Warning>`, etc.) for enhanced formatting and user experience.
+  - Keep this file (`Dochistory.mdx`) as the single source of truth for all documentation operational knowledge, troubleshooting, and lessons learned.
+
+- **Troubleshooting:**
+  - If you encounter schema validation errors, check for:
+    - Use of unsupported navigation keys or structures.
+    - Non-string entries in `pages` arrays.
+    - Missing required fields in `docs.json`.
+  - Always revert to the last known working structure documented here if unsure.
+
+- **Versioning & Upgrades:**
+  - If upgrading Mintlify or changing major configuration, document the process and any new schema requirements here.
+  - Test changes locally before pushing to production if possible.
+
+- **General:**
+  - All operational changes, fixes, and important context should be appended to this file for future maintainers and as a knowledge base reference. 
