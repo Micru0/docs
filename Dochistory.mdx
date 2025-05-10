@@ -94,3 +94,21 @@ Continuing from the initial documentation generation, this session focused on re
 *   Enhance the `TROUBLESHOOTING.mdx` page.
 
 This session successfully applied numerous Mintlify best practices and components to make the Macru documentation more visually appealing, structured, and user-friendly. 
+
+## Sidebar Navigation Troubleshooting and Theme Update
+
+Following the previous enhancements, an issue arose where the left sidebar navigation disappeared or was incomplete. Several attempts were made to correct the `docs.json` structure:
+
+1.  Initially, the navigation groups were moved directly under `navigation.groups`, removing a `tabs` wrapper. This led to a schema validation error during the Mintlify build process.
+2.  Next, the structure was changed to use `navigation.anchors` as the primary key, with all documentation groups nested under a new "Guides" anchor, and the `navigation.global` object was removed. This also resulted in build errors and a completely missing sidebar.
+
+**Resolution:**
+The issue was resolved by carefully restructuring `docs.json` as follows:
+*   The main documentation groups ("Get Started", "Macru Documentation", "Connectors") were placed under `navigation.groups`.
+*   Crucially, all `pages` entries within these groups were simplified to be strings (filenames only, e.g., `"GETTING_STARTED"`) rather than objects containing `page` and `icon` keys. Icons were kept at the group level.
+*   The `navigation.global.anchors` section was reinstated as it was in the original `docs.json` from the starter kit, as this was found to correctly render top-level links (like "Macru Overview" and "Key Features") in the sidebar.
+
+This combination of using `navigation.groups` for the main content structure, `navigation.global.anchors` for top-level sidebar links, and ensuring `pages` arrays contained only strings, successfully restored the sidebar navigation.
+
+Additionally, during this troubleshooting phase, the documentation theme colors were updated:
+*   The primary, light, and dark green colors were changed to cyan shades (`#00BCD4`, `#4DD0E1`, and `#0097A7` respectively) in `docs.json`. 

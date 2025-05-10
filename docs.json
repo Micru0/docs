@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Macru Documentation",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#00BCD4",
+    "light": "#4DD0E1",
+    "dark": "#0097A7"
   },
   "favicon": "/images/macrulogo.png",
   "navigation": {
