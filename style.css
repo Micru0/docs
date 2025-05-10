@@ -2,6 +2,6 @@
 
 /* Increase the size of the navbar logo */
 nav[role="banner"] a[href="/"] img { /* Targeting the logo image within the main navbar link */
-  height: 40px !important; /* Adjust size as needed. Using !important to ensure override. */
+  height: 50px !important; /* Adjust size as needed. Using !important to ensure override. */
   width: auto !important;   /* Maintain aspect ratio */
 } 
