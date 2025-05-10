@@ -1,16 +1,22 @@
 ---
 title: "Gmail Connector for Macru"
-description: "Connect your Gmail account to Macru to include email communications in your searchable knowledge base."
+description: "Connect your Gmail account to Macru to include email communications in your searchable knowledge base, with details on sync and data handling."
 icon: "envelope-open-text"
 ---
 
+# Gmail Connector
+
 Macru integrates with your Gmail account, enabling you to ingest email data directly into your personal knowledge base. This allows your important email communications to be searched, queried, and synthesized alongside information from all other connected sources.
+
+<Info>
+  The initial implementation of this connector, including OAuth, data fetching, and display/linking fixes, is detailed in `devlog.txt` entries: `[2025-05-07] Gmail Connector Implementation (Initial)` and `[2025-05-07] Gmail Connector Source Display Fixes`.
+</Info>
 
 ## Key Features
 
 <CardGroup cols={2}>
   <Card title="Secure OAuth 2.0" icon="lock-keyhole">
-    Authorize Macru to access your Gmail account securely using Google's standard OAuth 2.0 flow. Requires ``gmail.readonly``, ``userinfo.email``, and ``openid`` scopes.
+    Authorize Macru to access your Gmail account securely using Google's standard OAuth 2.0 flow. Scopes requested typically include `gmail.readonly`, `userinfo.email`, and `openid`.
   </Card>
   <Card title="Comprehensive Email Ingestion" icon="mailbox">
     Retrieves email content including important headers (Subject, From, Date) and the full email body.
@@ -18,14 +24,17 @@ Macru integrates with your Gmail account, enabling you to ingest email data dire
   <Card title="Intelligent Body Parsing" icon="file-lines-alt">
     Attempts to parse the email body effectively, preferring plain text versions when available and applying basic HTML stripping for other formats to extract clean content.
   </Card>
-  <Card title="Recent Email Focus & Sync" icon="sparkles">
-    The initial sync typically focuses on fetching recent emails (e.g., last 24 hours) for timely data access. Delta syncs based on ``lastSyncTime`` are planned for future enhancements to keep data current.
+  <Card title="Recent Email Focus (Initial Sync)" icon="sparkles">
+    The first sync after connecting focuses on fetching recent emails (e.g., from the last 24 hours, using `newer_than:1d` filter) for timely data access. (`devlog.txt [2025-05-07]`)
   </Card>
   <Card title="Manual Sync Control" icon="hand-point-up">
     A "Sync Now" button in Macru settings allows you to trigger an immediate synchronization of your Gmail data.
   </Card>
-  <Card title="Direct Source Linking" icon="link">
-    Ingested emails are stored with metadata, including a direct ``gmailUrl``, allowing them to be easily linked back to the original message in your Gmail interface.
+  <Card title="Direct Source Linking & Display" icon="link">
+    Ingested emails store the email subject as the title and a direct `gmailUrl` for easy linking back to the original message. (`devlog.txt [2025-05-07]`)
+  </Card>
+  <Card title="Token Refresh Handling" icon="key-skeleton-left-right">
+    The connector is designed to handle OAuth token refresh automatically to maintain persistent access.
   </Card>
 </CardGroup>
 
@@ -43,39 +52,40 @@ Follow these steps to connect your Gmail account to Macru:
 5.  After successful authorization, you will be redirected back to Macru.
 6.  The connection status, including the email address of the connected Google account, will be updated and displayed in your Macru settings.
 
+## Data Syncing Behavior
+
+*   **Initial Sync**: As highlighted in the `devlog.txt [2025-05-07]`, when you first connect your Gmail account or trigger a manual "Sync Now", the connector is configured to fetch only recent emails (e.g., those received in the last 24 hours using a `newer_than:1d` filter with the Gmail API). This is to ensure a quick and relevant initial ingestion.
+*   **Subsequent Syncs**: The architecture supports `lastSyncTime` for future implementation of true delta syncs, which would allow Macru to fetch only emails received or modified since the last successful synchronization.
+*   **Manual Sync**: You can trigger a sync at any time using the "Sync Now" button in the settings. This will re-apply the initial sync logic (e.g., fetching recent items) until delta sync is fully implemented.
+
+## Token Management and Security
+
+*   **OAuth Tokens**: Access to your Gmail data is managed via OAuth 2.0 tokens.
+*   **Secure Storage**: These tokens are securely stored in the `connector_tokens` table in Macru's Supabase database.
+*   **Token Refresh**: The `getConnectionStatus` method within the Gmail connector includes logic to refresh the access token using the stored refresh token if the current one is expired or nearing expiry. This ensures uninterrupted access without requiring you to re-authenticate frequently.
+*   **Disconnection**: If you choose to disconnect Gmail from Macru via the settings page, Macru will revoke the tokens with Google and delete the stored tokens from its database, severing access to your Gmail data.
+
 ## Technical Implementation Details
 
 For developers interested in the underlying mechanics:
 
-#### Core Connector Logic
-*   **File**: ``lib/connectors/gmail.ts``
-*   **Purpose**: Implements the ``DataConnector`` interface, including a ``transformMessage`` function for parsing email content and headers.
-
-#### Authentication Flow
-*   **OAuth Start**: ``app/api/connectors/gmail/auth/start/route.ts`` (initiates the redirect to Google's consent screen).
-*   **OAuth Callback**: ``app/api/connectors/gmail/auth/callback/route.ts`` (handles the redirect from Google, exchanges the authorization code, and securely saves tokens to the ``connector_tokens`` table).
-
-#### Supporting Endpoints
-*   **Status Check**: ``app/api/connectors/gmail/status/route.ts`` (verifies active connection and handles token refresh logic).
-*   **Disconnection**: ``app/api/connectors/gmail/disconnect/route.ts`` (manages token revocation with Google and removal from Macru).
-*   **Sync Trigger**: ``app/api/sync/gmail/route.ts`` (endpoint for manual data synchronization).
-
-#### Key Libraries
-*   ``googleapis`` (Google's official Node.js client library for Google APIs).
-
-<Note icon="code-branch">
-  **Development Highlights (from `devlog.txt`):**
-  *   Initial implementation: `[2025-05-07] Gmail Connector Implementation (Initial)`
-  *   Fixes for source display and URL linking: `[2025-05-07] Gmail Connector Source Display Fixes`
-</Note>
+*   **Core Connector Logic**: `lib/connectors/gmail.ts` (includes `transformMessage` for parsing email content, headers, extracting subject for title, and constructing `gmailUrl`).
+*   **Authentication Flow**:
+    *   OAuth Start: `app/api/connectors/gmail/auth/start/route.ts`
+    *   OAuth Callback: `app/api/connectors/gmail/auth/callback/route.ts` (handles token exchange and storage).
+*   **Supporting Endpoints**:
+    *   Status Check: `app/api/connectors/gmail/status/route.ts` (verifies connection, handles token refresh).
+    *   Disconnection: `app/api/connectors/gmail/disconnect/route.ts`
+    *   Sync Trigger: `app/api/sync/gmail/route.ts`
+*   **Key Libraries**: `googleapis`.
 
 ## Data Handling and Metadata
 
 Macru processes Gmail data as follows:
 
-*   **Email Retrieval**: The connector fetches email lists using ``gmail.users.messages.list`` and individual email details via ``gmail.users.messages.get`` from the Gmail API.
-*   **Content Transformation**: The ``transformMessage`` function within the connector extracts key headers (Subject, From, Date) and attempts to derive a clean, readable text representation of the email body.
-*   **Title Storage**: The email subject is stored in the ``documents.title`` column in Macru's database for easy identification.
-*   **Source URL**: A constructed ``gmailUrl`` (a direct link to the specific message in the Gmail interface) is stored in the ``documents.source_url`` column.
-*   **Source Identification**: The Gmail Message ID is typically stored as the ``source_id`` in Macru.
-*   **Ingestion Pipeline**: The extracted/parsed body content, along with metadata, is passed to Macru's ``DocumentProcessor`` for further chunking, embedding, and storage. 
+*   **Email Retrieval**: Uses `gmail.users.messages.list` (with filters like `newer_than:1d`) and `gmail.users.messages.get`.
+*   **Content Transformation**: The `transformMessage` function in `lib/connectors/gmail.ts` is key. It extracts headers (Subject, From, Date), prefers plain text body parts, and applies basic HTML stripping to others. The email `Subject` is specifically mapped to `metadata.title` (`devlog.txt [2025-05-07]`).
+*   **Title Storage**: The email subject is stored in the `documents.title` column, ensuring it's displayed correctly in search results and references (`devlog.txt [2025-05-07]`).
+*   **Source URL**: A `gmailUrl` (e.g., `https://mail.google.com/mail/#inbox/[MESSAGE_ID]`) is constructed and stored in `documents.source_url`, making emails in Macru directly linkable to their Gmail source (`devlog.txt [2025-05-07]`).
+*   **Source Identification**: The Gmail Message ID is stored as `source_id`, and `fileName` in the `ConnectorData` is also set to the message ID.
+*   **Ingestion Pipeline**: The processed content and metadata are passed to `lib/services/document-processor.ts`, which now prioritizes `providedMetadata.title` (from the connector) for the document title, and correctly populates `source_url` (`devlog.txt [2025-05-07]`). 

@@ -1,0 +1,62 @@
+---
+title: "Query Management System"
+description: "Understand how Macru stores, retrieves, and helps you manage your query history for a seamless and persistent experience."
+icon: "history"
+---
+
+# Query Management System
+
+Macru features a comprehensive Query Management System designed to enhance your productivity and ensure a persistent, personalized experience. This system automatically stores your queries and the corresponding responses from the Language Model (LLM), allowing you to revisit, search, and learn from your past interactions.
+
+<Info>
+  This system was implemented as part of the development cycle logged on **[2025-04-27]**.
+</Info>
+
+## Core Functionalities
+
+The Query Management System provides several key benefits:
+
+<CardGroup cols={2}>
+  <Card title="Persistent History" icon="save">
+    All your queries and the LLM's answers are automatically saved to a secure database. This means your conversation history is preserved even if you close your browser or switch devices.
+  </Card>
+  <Card title="Conversation Restoration" icon="window-restore">
+    Easily pick up where you left off. The chat interface can load and display your previous conversations, maintaining context and flow.
+  </Card>
+  <Card title="Search & Filtering (Future)" icon="search">
+    While initial implementation focuses on history display, the system is built to support future enhancements like searching and filtering your query history.
+  </Card>
+  <Card title="Data-Driven Insights (Future)" icon="chart-line">
+    The stored query data lays the groundwork for future analytics features, potentially offering insights into your usage patterns and information needs.
+  </Card>
+</CardGroup>
+
+## How It Works
+
+When you interact with Macru's chat interface:
+
+1.  **Query Submission**: Your questions are sent to the LLM for processing.
+2.  **Storage**: Simultaneously, your query and the LLM's response are saved to dedicated tables in the Macru database. This includes relevant metadata for organization.
+3.  **Display**: The `ChatInterface` component, along with `QueryHistory` and `QueryItem` sub-components, renders your current and past interactions in a user-friendly format.
+4.  **Real-time Sync**: The system aims for real-time synchronization between the UI and the database, ensuring your displayed history is always up-to-date.
+
+## Key Components Involved
+
+-   **Database**: Secure tables store queries, responses, and associated metadata, with Row Level Security (RLS) policies to protect your data.
+-   **API Endpoints**: Dedicated API routes (e.g., `/api/queries`) manage the creation, retrieval, and management of query data.
+-   **UI Elements**:
+    -   `components/ui/chat-interface.tsx`: The main component for user interaction.
+    -   `components/ui/query-history.tsx`: Displays the list of past queries.
+    -   `components/ui/query-item.tsx`: Renders individual query-response pairs.
+
+## Future Enhancements
+
+As noted in the development log, several enhancements are envisioned for the Query Management System:
+
+-   Query categorization and tagging.
+-   Ability to share queries (with appropriate controls).
+-   An analytics dashboard for query patterns.
+-   Bulk query operations (e.g., delete, export).
+-   Advanced search capabilities with robust filtering options.
+
+This system is a foundational piece of Macru, ensuring that your interactions are not lost and can be leveraged for a more efficient and continuous workflow. 
