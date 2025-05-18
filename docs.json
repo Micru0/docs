@@ -15,7 +15,8 @@
         "icon": "rocket",
         "pages": [
           "index",
-          "GETTING_STARTED"
+          "GETTING_STARTED",
+          "MINTLIFY_SETUP_GUIDE"
         ]
       },
       {
