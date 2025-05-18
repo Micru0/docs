@@ -1,8 +1,60 @@
 ---
-title: "Test Querying Data"
-description: "Minimal test page for Querying Data."
+title: "Querying Data with Macru"
+description: "Understand how Macru enables you to ask natural language questions against your ingested data using its advanced Hybrid Query Engine and Cache-Augmented Generation."
 ---
 
-# Minimal Content
+Macru empowers you to interact with your entire knowledge base by asking natural language questions. It leverages a sophisticated querying system to find relevant information and synthesize insightful answers, turning your scattered data into accessible knowledge.
 
-This is a test for Querying Data. 
+## Hybrid Query Engine: The Best of Both Worlds
+
+At the core of Macru's querying capability is a **Hybrid Query Engine**. This engine intelligently combines two powerful retrieval methods to find the most relevant information for your query:
+
+<CardGroup cols={2}>
+  <Card title="Vector Similarity Search" icon="arrows-retweet">
+    Utilizes vector embeddings generated during ingestion to find text chunks whose semantic meaning is closest to your query. This is highly effective for understanding the intent and context behind your questions, even if you don't use exact keywords. Implemented using ``pgvector`` in Supabase and the ``match_documents`` database function.
+  </Card>
+  <Card title="Structured Metadata Filtering" icon="filter-list">
+    Filters data based on concrete attributes extracted from your sources (e.g., ``event_start_time``, ``content_status``, ``priority``, ``source_type``, ``source_created_at``). This allows for precise queries like "Show me Notion documents created this week with 'high' priority" and complements vector search by narrowing results.
+  </Card>
+</CardGroup>
+
+By merging these approaches, the Hybrid Query Engine retrieves a comprehensive and highly relevant set of data chunks and items from your knowledge base to answer your questions.
+
+<Note>
+  For in-depth technical details on the Hybrid Query Engine, including the ``match_documents`` function and context assembly, refer to `devlog.txt` entries under **Task 15 (Hybrid Query Engine)**, especially `[2025-05-05] Structured Metadata Context & Prompt Enhancement` and `[2025-05-05] Source Attribution & Type Filtering Refinement`.
+</Note>
+
+## Cache-Augmented Generation (CAG): Smart Answer Creation
+
+Once relevant data is retrieved, Macru employs a **Cache-Augmented Generation (CAG)** process to formulate your answer:
+
+1.  **Context Assembly**:
+    *   The retrieved text chunks and relevant structured metadata points are efficiently assembled into a prompt for the selected Large Language Model (LLM).
+    *   Care is taken to fit this context within the LLM's operational window while maximizing the pertinent information provided.
+2.  **LLM Interaction** (via ``lib/llmRouter.ts``):
+    *   Your query and the assembled context are passed to the chosen LLM (e.g., Google Gemini).
+    *   The LLM processes this rich information to understand the query within the specific context of your retrieved data.
+3.  **Answer Generation**:
+    *   The LLM generates a natural language response grounded in the provided context.
+    *   Macru aims to provide answers that are not only accurate but also clearly indicate their basis in your data, often including source attribution.
+4.  **Caching Strategies**:
+    *   To enhance performance and optimize resource usage, Macru implements caching for embeddings.
+    *   Future enhancements may include more extensive caching for frequently retrieved data chunks or LLM responses.
+
+<Note>
+  The `devlog.txt` entry `[2025-04-27] Query Management System Implementation` details how user queries and LLM responses are managed and stored within Macru.
+</Note>
+
+## Source Attribution: Know Your Data's Origin
+
+<Tip icon="link">
+When Macru generates answers, especially summaries or information synthesized from multiple documents, it strives to provide clear **source attribution**.
+</Tip>
+
+This means indicating which of your ingested documents or data items were used to formulate the response. This transparency allows you to:
+*   Verify the information provided.
+*   Easily navigate to and explore the original source document for deeper context.
+
+<Note>
+  The functionality for source attribution was refined as detailed in `devlog.txt` entries like `[2025-05-05] Source Attribution & Type Filtering Refinement (Task 15.3 Part 1)`.
+</Note> 
